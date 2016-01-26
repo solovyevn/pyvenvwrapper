@@ -1,0 +1,181 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Hooks &mdash; pyvenvwrapper 1b0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1b0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="pyvenvwrapper 1b0 documentation" href="index.html" />
+    <link rel="prev" title="Command reference" href="command_reference.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="hooks">
+<h1>Hooks<a class="headerlink" href="#hooks" title="Permalink to this headline">¶</a></h1>
+<p>If there&#8217;s a need for added behavior on any command execution, it can be provided via custom scripts, that can be assigned to the hook variables. The script provided will be sourced, which means that its commands will be called in the same process and any changes, ie. directory changes, global variables, will be kept in current shell session after sourcing. There&#8217;re hooks that will be sourced before and after each command.</p>
+<p>Custom hook script will be sourced:</p>
+<blockquote>
+<div><ul class="simple">
+<li>for <strong>PRE</strong> command - before any actions are taken, but after command line options and arguments are parsed and verified;</li>
+<li>for <strong>POST</strong> command - after all actions are taken, as last instructions, but only if no errors occured.</li>
+</ul>
+</div></blockquote>
+<p>For convenience every script defined for hook variables will get &#8220;<em>venv=VENV_NAME</em>&#8221; as first argument and all the arguments from command line as subsequent arguments.
+Special cases are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><strong>LSVENV</strong> might be called without <em>VENV_NAME</em>, in this case &#8220;<em>venv=</em>&#8221; will be provided;</li>
+<li><strong>CPVENV</strong> will get &#8220;<em>venv=SRC_VENV</em>&#8221; and &#8220;<em>dst=DST_VENV</em>&#8221; as first and second arguments and all the arguments from command line as subsequent arguments;</li>
+<li><strong>DEACT</strong> will not get any arguments, as it doesn&#8217;t use any. (Active virtual evironment path is kept in <em>VIRTUAL_ENV</em> environment variable, so it can be used.)</li>
+</ul>
+</div></blockquote>
+<p><em>VENV_NAME</em>, <em>SRC_VENV</em>, <em>DST_VENV</em> will be the actual virtual environments names provided as argument to corresponding command.</p>
+<p>Custom script should return &#8216;<em>0</em>&#8216; in the end if no errors occured. If the sourced script will return any return code other than &#8216;<em>0</em>&#8216;, then the command will be aborted with error.</p>
+<p>Provide a path to a custom script file as a value for the following variables directly in <em>pyvenvwrapper_settings</em> in <em>pyvenvwrapper</em> package or in the end of user&#8217;s <em>.bashrc</em> file to define hooks (i.e. <em>PYVENVWRAPPER_POST_MKVENV=~/custom_sript</em>). Fot changes to take effect you&#8217;ll have to reboot the shell or run &#8216;<em>source ~/.bashrc</em>&#8216;.</p>
+<blockquote>
+<div><ul>
+<li><dl class="first docutils">
+<dt>Sourced before and after <em>mkvenv</em>:</dt>
+<dd><p class="first last"><strong>PYVENVWRAPPER_PRE_MKVENV</strong>
+<strong>PYVENVWRAPPER_POST_MKVENV</strong></p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Sourced before and after <em>lsvenv</em>:</dt>
+<dd><p class="first last"><strong>PYVENVWRAPPER_PRE_LSVENV</strong>
+<strong>PYVENVWRAPPER_POST_LSVENV</strong></p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Sourced before and after <em>cdvenv</em>:</dt>
+<dd><p class="first last"><strong>PYVENVWRAPPER_PRE_CDVENV</strong>
+<strong>PYVENVWRAPPER_POST_CDVENV</strong></p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Sourced before and after <em>rmvenv</em>:</dt>
+<dd><p class="first last"><strong>PYVENVWRAPPER_PRE_RMVENV</strong>
+<strong>PYVENVWRAPPER_POST_RMVENV</strong></p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Sourced before and after <em>cpvenv</em>:</dt>
+<dd><p class="first last"><strong>PYVENVWRAPPER_PRE_CPVENV</strong>
+<strong>PYVENVWRAPPER_POST_CPVENV</strong></p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Sourced before and after <em>workon</em>:</dt>
+<dd><p class="first last"><strong>PYVENVWRAPPER_PRE_WORKON</strong>
+<strong>PYVENVWRAPPER_POST_WORKON</strong></p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Sourced before and after <em>deact</em>:</dt>
+<dd><p class="first last"><strong>PYVENVWRAPPER_PRE_DEACT</strong>
+<strong>PYVENVWRAPPER_POST_DEACT</strong></p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Sourced before and after virtual environment activation on directory change if <em>PYVENVWRAPPER_ACT_ON_CD</em> setting is enabled:</dt>
+<dd><p class="first last"><strong>PYVENVWRAPPER_PRE_ACT_ON_CD</strong>
+<strong>PYVENVWRAPPER_POST_ACT_ON_CD</strong></p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<dl class="docutils">
+<dt>Note for <em>PYVENVWRAPPER_PRE_ACT_ON_CD</em> and <em>PYVENVWRAPPER_POST_ACT_ON_CD</em>:</dt>
+<dd>If <em>cd</em> to directory not related in any way to any virtual environment, hooks are not called. If <em>cd</em> to directory related to virtual environment, even if there&#8217;s any already active virtual environment, the <em>PRE</em> hook will be source before currently active environment deactivation. For these hook scripts any output to console will be suppresed.</dd>
+</dl>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="command_reference.html" title="previous chapter">Command reference</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/hooks.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Nikita Solovyev.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+      |
+      <a href="_sources/hooks.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

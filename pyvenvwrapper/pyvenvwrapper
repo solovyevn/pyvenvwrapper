@@ -1,0 +1,1555 @@
+#pyvenvwrapper
+#The MIT License (MIT)
+#Copyright (c) 2016 Nikita Solovyev
+#
+#Permission is hereby granted, free of charge, to any person obtaining a copy 
+#of this software and associated documentation files (the "Software"), to deal 
+#in the Software without restriction, including without limitation the rights to
+#use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies 
+#of the Software, and to permit persons to whom the Software is furnished to do 
+#so, subject to the following conditions:
+#
+#The above copyright notice and this permission notice shall be included in all 
+#copies or substantial portions of the Software.
+#
+#THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+#IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+#FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+#AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+#LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+#OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
+#SOFTWARE.
+
+#pyvenvwrapper part BEGIN
+
+<<REFERENCE_SETTINGS
+#Main variables for global settings
+PYVENVWRAPPER_ENV_DIR=~/.virtualenvs #Directory to keep virtual environments. No symlinks allowed.
+PYVENVWRAPPER_PROJ_DIR=~/projects #Directory to keep project folders. No symlinks allowed.
+PYVENVWRAPPER_CD_ON_WORKON=true #Change directory to corresponding project directory after virtual environment activation with workon. Possible values: true/false. Requires PYVENVWRAPPER_PROJ_DIR to be set in order to work.
+PYVENVWRAPPER_CD_ON_DEACT=true #Change directory to the one used at the time of workon execution after virtual environment deactivation with deact call. Possible values: true/false.
+PYVENVWRAPPER_ACTIVATE_ON_CD=true #Redefine cd, popd, pushd to activate virtual environment if directory changed to one of virtual environments' or corresponding projects' directory, otherwise do nothing or deactivate active virtual environment. Possible values: true/false. Requires shell reboot after changing. Note: redefined functions are intended to be transparent, so argumetns of original built-in functions are not affected in any way, return value are always that of wrapped built-in and no additional output related to added behavior is introduced.
+
+#Hooks that will be sourced before and after each command. Provide a path to a script file as a value for the following variables.
+#The script you provide will be sourced:
+#for PRE command - before any actions are taken, but after command line options and arguments are parsed and verified  
+#for POST command - after all actions are taken, as last instructions, but only if no errors occured
+#For convenience every script defined for this variables will get "venv=VENV_NAME" as first argument and all the arguments from command line as subsequent arguments.
+#Special cases are:
+#LSVENV might be called without VENV_NAME, therefore "venv=" might be provided;
+#CPVENV will get "venv=SRC_VENV" and "dst=DST_VENV" as first and second arguments and all the arguments from command line as subsequent arguments. [VENV_NAME], [SRC_VENV], [DST_VENV] will be the actual virtual environments names provided as argument to corresponding command;
+#DEACT will not get any arguments as it doesn't use any. Though active virtual evironment sets VIRTUAL_ENV variable, so you can use it.
+#Your script should 'return 0' in the end if no errors occured. If the sourced script will return any return code other than '0' then the command will be aborted with error.
+#Sourced before and after mkvenv
+PYVENVWRAPPER_PRE_MKVENV=
+PYVENVWRAPPER_POST_MKVENV=
+#Sourced before and after lsvenv
+PYVENVWRAPPER_PRE_LSVENV=
+PYVENVWRAPPER_POST_LSVENV=
+#Sourced before and after cdvenv
+PYVENVWRAPPER_PRE_CDVENV=
+PYVENVWRAPPER_POST_CDVENV=
+#Sourced before and after rmvenv 
+PYVENVWRAPPER_PRE_RMVENV=
+PYVENVWRAPPER_POST_RMVENV=
+#Sourced before and after cpvenv 
+PYVENVWRAPPER_PRE_CPVENV=
+PYVENVWRAPPER_POST_CPVENV=
+#Sourced before and after workon
+PYVENVWRAPPER_PRE_WORKON=
+PYVENVWRAPPER_POST_WORKON=
+#Sourced before and after deact
+PYVENVWRAPPER_PRE_DEACT=
+PYVENVWRAPPER_POST_DEACT=
+#Sourced before and after virtual environment activation on directory change if PYVENVWRAPPER_ACT_ON_CD is enabled
+PYVENVWRAPPER_PRE_ACT_ON_CD=
+PYVENVWRAPPER_POST_ACT_ON_CD=
+#If cd to directory not related in any way to any virtual environment, hooks are not called.
+#If cd to directory related to virtual environment, even if there's any already active virtual environment, the PRE hook will be source before currently active environment deactivation.
+#Note: any output to console will be suppresed, so don't expect you hook scripts to display anything
+REFERENCE_SETTINGS
+
+function pyvenvwrapper() #Display possible commands
+{
+	echo "
+        pyvenvwrapper 0.1.0b0
+Copyright (c) 2016 Nikita Solovyev
+
+pyvenvwrapper includes the following commands:
+
+ mkvenv - creates virtual environment and optionally related project folder;
+
+ workon - activates existing virtual environment and optionally changes current
+          working directory to related project folder;
+
+ deact - deactivates currently active virtual environment and optionally changes
+         current working directory back to the one used before this virtual
+         environment activation;
+
+ lsvenv - prints existing virtual environments' names, or if used with virtual
+          environment name as argument prints packages installed in it;
+
+ cdvenv - changes current working directory to specified virtual environments
+          directory, or related project directory depending on provided options;
+
+ cpvenv - copies existing virtual environment with new name and optionally
+          related project folder;
+
+ rmvenv - deletes existing virtual environment and optionally related project
+          folder.
+
+Use '[command] -h' or '[command] --help' to see usage and possible options for each command.
+"
+	return 0
+}
+
+function _pyvenvwrapper_ensure_pip() #Internal use. Checks if pip is available in virtual environment provided as argument and tries to install pip if not
+{
+	local venv
+	if [ "$#" -ne 1 ];
+	then
+		echo "_pyvenvwrapper_ensure_pip: Syntax error, _pyvenvwrapper_ensure_pip requires single argument - existing virtual environment name." >&2
+		return 2
+	fi
+	venv="$1"
+	#check if directory for virtual environments is specified
+	if [ -z "$PYVENVWRAPPER_ENV_DIR" ];
+	then
+		echo "pyvenvwrapper: Directory for virtual environments is not specified."$'\n'"Set PYVENVWRAPPER_ENV_DIR variable to directory containing virtual environments and try again." >&2
+		return 1
+	fi
+	#activate virtual environment and check for pip
+	_pyvenvwrapper_activate "$venv" || { echo "pyvenvwrapper: Internal error occured, can't proceed." >&2; return 1; }
+	if which pip | grep "$PYVENVWRAPPER_ENV_DIR/$venv" > /dev/null 2>&1;
+	then
+		#pip is available
+		echo "pyvenvwrapper: \"pip\" is available in virtual environment \"$venv\"."
+	else
+		#pip is not available, try to get installation script first
+		echo "pyvenvwrapper: \"pip\" is not available in virtual environment \"$venv\", trying to install..."
+		if which wget > /dev/null 2>&1;
+		then
+			wget -q -t 3 -O "$PYVENVWRAPPER_ENV_DIR/$venv/get-pip.py" 'https://bootstrap.pypa.io/get-pip.py'
+
+		elif which curl > /dev/null 2>&1;
+		then
+			curl -s -o "$PYVENVWRAPPER_ENV_DIR/$venv/get-pip.py" 'https://bootstrap.pypa.io/get-pip.py'
+		else
+			echo "pyvenvwrapper: Error, couldn't find \"wget\" or \"curl\" to use for \"pip\" download, can't proceed." >&2
+			deactivate || { echo "pyvenvwrapper: Internal error occured, can't proceed." >&2; }
+			return 1
+		fi
+		#if pip installation script is downloaded, run it
+		if [ -f "$PYVENVWRAPPER_ENV_DIR/$venv/get-pip.py" ];
+		then
+			echo "pyvenvwrapper: \"pip\" installation script downloaded, proceeding..."	
+			python "$PYVENVWRAPPER_ENV_DIR/$venv/get-pip.py" -q
+			rm -f "$PYVENVWRAPPER_ENV_DIR/$venv/get-pip.py" 
+			#pip install -q -U pip #update pip to latest version
+			if which pip | grep "$PYVENVWRAPPER_ENV_DIR/$venv" > /dev/null 2>&1;
+			then
+				echo "pyvenvwrapper: \"pip\" is successfully istalled in virtual environment \"$venv\"."
+			else
+				echo "pyvenvwrapper: Error, installation was unsuccessful, \"pip\" is not available in virtual environment \"$venv\"." >&2
+				deactivate || { echo "pyvenvwrapper: Internal error occured, can't proceed." >&2; }
+				return 1
+			fi
+		else
+			echo "pyvenvwrapper: Error, couldn't download \"pip\" installation script, can't proceed." >&2
+			deactivate || { echo "pyvenvwrapper: Internal error occured, can't proceed." >&2; }
+			return 1
+		fi
+	fi
+	deactivate || { echo "pyvenvwrapper: Internal error occured, can't proceed." >&2; return 1; }
+	return 0
+}
+
+function _pyvenvwrapper_activate() #Internal use. Deactivates any active virtual environment and activates the one specified by it's argument, and sets PYVENVWRAPPER_OLD_CWD
+{
+	local venv
+	if [ "$#" -ne 1 ];
+	then
+		echo "_pyvenvwrapper_activate: Syntax error, _pyvenvwrapper_activate requires single argument - existing virtual environment name." >&2
+		return 2
+	fi
+	venv="$1"
+	#check if directory for virtual environments is specified
+	if [ -z "$PYVENVWRAPPER_ENV_DIR" ];
+	then
+		echo "pyvenvwrapper: Directory for virtual environments is not specified."$'\n'"Set PYVENVWRAPPER_ENV_DIR variable to directory containing virtual environments and try again." >&2
+		return 1
+	fi
+	#deactivate any active virtual environment and activate requested one
+	if [ -f "$PYVENVWRAPPER_ENV_DIR/$venv/bin/activate" ];
+	then
+		if [ -n "$VIRTUAL_ENV" ];
+		then
+			deactivate || { echo "pyvenvwrapper: Internal error occured, can't proceed." >&2; return 1; }
+		fi
+		source "$PYVENVWRAPPER_ENV_DIR/$venv/bin/activate" || { echo "pyvenvwrapper: Internal error occured, can't proceed." >&2; return 1; }
+		PYVENVWRAPPER_OLD_CWD=`pwd || { echo "pyvenvwrapper: Internal error occured, can't proceed." >&2; return 1; }` #Save current working directory to return on deact
+	else
+		echo "pyvenvwrapper: Error, can't find activation script (\"$PYVENVWRAPPER_ENV_DIR/$venv/bin/activate\") for virtual environment \"$venv\"." >&2
+		return 1
+	fi
+	return 0
+}
+
+function _pyvenvwrapper_lsvenv() #Internal use. Sets PYVENVWRAPPER_ENVS variable to array of existing virtual environments in directory specified by PYVENVWRAPPER_ENV_DIR
+{
+	#check if directory for virtual environments is specified
+	if [ -z "$PYVENVWRAPPER_ENV_DIR" ];
+	then
+		echo "pyvenvwrapper: Directory for virtual environments is not specified."$'\n'"Set PYVENVWRAPPER_ENV_DIR variable to directory containing virtual environments and try again." >&2
+		return 1
+	fi
+	#get available virtual environments - folders with "activate" script and set a variable
+	PYVENVWRAPPER_ENVS=$( ls -AL "$PYVENVWRAPPER_ENV_DIR"/*/bin/activate | grep -Po "(?<=^$PYVENVWRAPPER_ENV_DIR/)(.*?)(?=/.*)") || { echo "pyvenvwrapper: Internal error occured while trying to create virtual environments list."$'\n'"Check that PYVENVWRAPPER_ENV_DIR variable is set properly." >&2; return 1; }
+	return 0
+}
+
+function _lsvenv() #Internal use. Generates lsvenv auto-completion on TAB
+{
+	local cur #current auto-completion word
+	local completions #possible completions list
+	COMPREPLY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	#do not auto-complete if argument akin to virtual environment name is already on the command line
+	for (( i=1; i<$((${#COMP_WORDS[@]}-1)); i++ ));
+	do
+		if [[ "${COMP_WORDS[$i]}" != -* ]];
+		then
+			return 1
+		fi
+	done
+	_pyvenvwrapper_lsvenv > /dev/null 2>&1 || return 1
+	completions=$PYVENVWRAPPER_ENVS
+	COMPREPLY=($(compgen -W "$completions" -- $cur))
+}
+
+function mkvenv() #mkvenv command, wrapper for pyvenv/virtualenv and pip install
+{
+	local usage_str 
+	local help_str
+	local util_help_str #virtual environment creation utility help string
+	local venv #name for new virtual environment
+	local util #argument of -u, name of utility to use for virtual environment creation (default: pyvenv)
+	local opts #argument of -o, options to pass to virtual environment creation utility
+	local inst #argument of -i, packages to install via pip
+	local req #argument of -r, requirements file to install via pip
+	local ens_pip #bool for -p, ensure pip is installed or try to install it
+	local no_proj #bool for -n, don't create project directory
+	local templ #argument of -t, template directory to copy files from to new project directory
+	local act #bool for -a, activate newly created environment in the end
+	local cd_env #bool for -e, cd to newly created environment directory in the end
+	local cd_proj #bool for -j, cd to newly created project directory in the end
+	local venv_cmd #array representing composed command to create virtual environment
+	local pip_cmd #array representing composed command to install packages
+	local arg_set #store arguments passed to this command to pass to hook script
+	arg_set=$@
+	util="pyvenv"
+	ens_pip=false
+	no_proj=false
+	act=false
+	cd_env=false
+	cd_proj=false
+	usage_str="Usage: mkvevn [OPTIONS] VENV_NAME" 
+	help_str="Help: mkvenv command creates new virtual environment with the name of VENV_NAME in directory specified by PYVENVWRAPPER_ENV_DIR (set to \"$PYVENVWRAPPER_ENV_DIR\") and new project directory with the same name in directoy specified by PYVENVWRAPPER_PROJ_DIR (set to \"$PYVENVWRAPPER_PROJ_DIR\"), if this variable is set. Additional options, that modify this command's behavior are described below.
+
+Mandatory arguments to long options are mandatory for short options too.
+Combined options are not supported, i.e. instead of '-aj' use '-a -j'.
+
+  -o, --options \"<options>\"             Options to provide to underlying tool
+                                        for virtual environment creation.
+				        See additional information below. 
+  -i, --install \"<requirements>\"        Install packages listed in requirements
+                                        using pip after virtual environment is
+					created. <requirements> should be quoted
+					string in \"pip install\" requirement
+					specifier format. mkvenv will
+					automatically try to install pip if it
+					isn't already available.
+  -r, --requirements <file>             Install packages listed in requirements
+                                        file using pip after virtual environment
+					is created. <file> should be path
+					pointing to a file containing
+					requirement specifications in \"pip
+					install -r\" requirements file format.
+					mkvenv will automatically try to install 
+					pip if it isn't already available.
+  -u, --util <util name>                Specify the name of utility to use for
+                                        virtual environment creation. By defaul t
+					mkvenv tries to use \"pyvenv\" first, if
+					it's not available mkvenv tries to use
+					\"virtualenv\".
+  -p, --pip                             Install pip after virtual environment is
+                                        created. 
+  -t, --template <template dir path>    Copy files and directories from template
+                                        directory to newly created project
+					directory. Precludes use of -n option.
+  -n, --no-project                      Don't create project directory.
+                                        Precludes use of -t, -j options.
+  -a, --activate                        Activate virtual environment after it is
+                                        created.
+  -e, --env                             Change current directory to virtual
+                                        environment directory after it is
+					created. Precludes use of -j option.
+  -j, --project                         Change current directory to project
+                                        directory after it is created.
+					Precludes use of -n, -e options.
+"
+	#parse input
+	if [ $# -eq 0 ];
+	then
+		echo "mkvenv: Syntax error, no argument provided. Use \"-h\" or \"--help\" for help." >&2
+		echo "$usage_str"
+		return 2
+	fi
+	if ! which "$util" > /dev/null 2>&1 && which virtualenv > /dev/null 2>&1; 
+	then
+		util="virtualenv"
+	fi
+	while [ $# -ne 0 ];
+	do
+		case "$1" in
+			("-h" | "--help")
+				echo "$usage_str"
+				echo "$help_str"
+				if which "$util" > /dev/null 2>&1; 
+				then
+					echo "Help text for underlying utility to use for virtual environment creation is displayed below, you can provide options to it as a string in quotes via -o option of mkvenv.
+================================================================================"
+					util_help_str=( $util "-h" )
+					if ! ${util_help_str[@]};
+					then
+						util_help_str=( $util "--help" )
+						${util_help_str[@]}
+					fi
+				else
+					echo "mkvenv: Error, no utility \"$util\" is found to use for virtual environment creation."$'\n'"Make sure \"$util\" is installed and accessible via PATH variable setting, and try again. Or try providing available utility name to mkvenv via argument of -u/--util option." >&2
+				fi
+				return 0
+			;;
+			("-o" | "--options")
+				if [ -n "$2" ];
+				then
+					opts=( $2 )
+				else
+					echo "mkvenv: Syntax error, option -o/--options requires quoted string of options to pass to underlying virtual environment creation tool as argument (\"$2\" was provided)." >&2
+					return 2
+				fi
+				shift 2
+			;;
+			("-i" | "--install")
+				if [ -n "$2" ] && [[ "$2" != -* ]];
+				then
+					inst=( $2 )
+					ens_pip=true
+				else
+					echo "mkvenv: Syntax error, option -i/--install requires valid \"pip install\" requirement specification as argument to use for package installation (\"$2\" was provided)." >&2
+					return 2
+				fi
+				shift 2
+			;;
+			("-r" | "--requirements")
+				if [ -n "$2" ] && [[ "$2" != -* ]];
+				then
+					if [ -f "$2" ];
+					then
+						req="$2"
+						ens_pip=true
+					else
+						echo "mkvenv: Error, can't find \"$2\" file. Option -r/--requirements requires valid \"pip install -r\" requirements file path as argument to use for package installation." >&2
+						return 1
+					fi
+				else
+					echo "mkvenv: Syntax error, option -r/--requirements requires valid \"pip install -r\" requirements file path as argument to use for package installation (\"$2\" was provided)." >&2
+					return 2
+				fi
+				shift 2
+			;;
+			("-p" | "--pip")
+				ens_pip=true
+				shift
+			;;
+			("-n" | "--no-project")
+				no_proj=true
+				shift
+			;;
+			("-t" | "--template")
+				if [ -n "$2" ] && [[ "$2" != -* ]];
+				then
+					templ="$2"
+					if [ ! -d "$templ" ];
+					then
+						echo "mkvenv: Error, can't find template directory \"$templ\" to use for new project directory creation." >&2
+						return 1
+					fi
+				else
+					echo "mkvenv: Syntax error, option -t/--template requires valid template directory name as argument (\"$2\" was provided)." >&2
+					return 2
+				fi
+				shift 2
+			;;
+			("-u" | "--util")
+				if [ -n "$2" ] && [[ "$2" != -* ]];
+				then
+					util="$2"
+				else
+					echo "mkvenv: Syntax error, option -u/--util requires the name of utility to use for virtual environment creation as argument (\"$2\" was provided)." >&2
+					return 2
+				fi
+				shift 2
+			;;
+			("-a" | "--activate")
+				act=true
+				shift
+			;;
+			("-e" | "--env")
+				cd_env=true
+				shift
+			;;
+			("-j" | "--project")
+				cd_proj=true
+				shift
+			;;
+			("--")
+				venv="$2"
+				break
+			;;
+			(-*)
+				echo "mkvenv: Syntax error, unknown option \"$1\"." >&2
+				return 2
+			;;
+			(*)
+				if [ $# -eq 1 ];
+				then
+					venv="$1"
+					break
+				else
+					echo "mkvenv: Syntax error, couldn't parse \"$1\"." >&2
+					return 2
+				fi
+			;;
+		esac
+	done
+	#check if directory for virtual environments is specified
+	if [ -z "$PYVENVWRAPPER_ENV_DIR" ];
+	then
+		echo "pyvenvwrapper: Directory for virtual environments is not specified."$'\n'"Set PYVENVWRAPPER_ENV_DIR variable to directory for virtual environments and try again." >&2
+		return 1
+	fi
+	#check if virtual environment creation tool is available
+	if ! which "$util" > /dev/null 2>&1;
+       	then	
+		echo "mkvenv: Error, can't find \"$util\" utility to use for virtual environment creation."$'\n'"Make sure \"$util\" is installed and accessible via PATH variable setting, and try again. Or try providing available utility name to mkvenv via argument of -u/--util option." >&2
+		return 1
+	fi
+	#verify argument and options compliance
+	if [ -z "$venv" ];
+	then
+		echo "mkvenv: Syntax error, name for new virtual environment is not provided. Use \"-h\" or \"--help\" for help." >&2
+		echo "$usage_str"
+		return 2
+	fi
+	if [[ "$venv" == -* ]];
+	then
+		echo "mkvenv: Syntax error, invalid virtual environment name \"$venv\"." >&2
+		return 2
+	fi
+	if [ "$no_proj" == true ];
+	then
+		if [ -n "$templ" ];
+		then
+			echo "mkvenv: Syntax error, -n/--no-project option contradicts -t/--template option. Use one of these, but not both." >&2
+			return 2
+		fi
+		if [ "$cd_proj" == true ];
+		then
+			echo "mkvenv: Syntax error, -n/--no-project option contradicts -j/--project option. Use one of these, but not both." >&2
+			return 2
+		fi
+	else
+		if [ -z "$PYVENVWRAPPER_PROJ_DIR" ];
+		then
+			if [ -n "$templ" ];
+			then
+				echo "mkvenv: Error, won't be able to create new project directory with template, because directory for projects is not specified."$'\n'"Set PYVENVWRAPPER_PROJ_DIR variable or run mkvenv without -t/--template option." >&2
+				return 1
+			fi
+			if [ "$cd_proj" == true ];
+			then
+				echo "mkvenv: Error, won't be able to change current directory to new project directory in the end, because directory for projects is not specified."$'\n'"Set PYVENVWRAPPER_PROJ_DIR variable or run mkvenv without -j/--project option." >&2
+				return 1
+			fi
+		else
+			if [ -f "$PYVENVWRAPPER_PROJ_DIR/$venv" ];
+			then
+				echo "mkvenv: Error, won't be able to create project directory \"$PYVENVWRAPPER_PROJ_DIR/$venv\", because file with the same name exists." >&2
+				return 1
+			fi
+			if [ "$cd_proj" == true ] && [ "$cd_env" == true ];
+			then
+				echo "mkvenv: Syntax error, -j/--project option contradicts -e/--env option. Use one of these, but not both." >&2
+				return 2
+			fi
+			if [ -n "$templ" ] && [ -d "$PYVENVWRAPPER_PROJ_DIR/$venv" ] && [ -n "$(ls -AL "$PYVENVWRAPPER_PROJ_DIR/$venv")" ];
+			then
+				echo "mkvenv: Error, won't be able to fill project directory \"$PYVENVWRAPPER_PROJ_DIR/$venv\" with template, because it already exists and is not empty." >&2
+				return 1
+			fi
+		fi
+	fi
+	#source hook script if it's set
+	if [ -n "$PYVENVWRAPPER_PRE_MKVENV" ];
+	then
+		source "$PYVENVWRAPPER_PRE_MKVENV" "venv=$venv" $arg_set || { echo "mkvenv: Internal error occured, PYVENVWRAPPER_PRE_MKVENV script returned error code, can't proceed." >&2; return 1; }
+	fi
+	echo "mkvenv: Starting..."
+	#make virtual env with tool specified by $util 
+	echo "mkvenv: Creating virtual environment \"$venv\" in \"$PYVENVWRAPPER_ENV_DIR/$venv\" using \"$util\"..."
+	venv_cmd=( "$util" ${opts[@]} "$PYVENVWRAPPER_ENV_DIR/$venv" )
+	${venv_cmd[@]} || { echo "mkvevn: Internal error occured, can't proceed." >&2; return 1; }
+	echo "mkvenv: Virtual environment \"$venv\" is created. You can activated it using \"workon $venv\" command, and then deactivate using \"deact\" command."
+	#check that pip is available and install packages if required
+	if [ "$ens_pip" == true ] && { _pyvenvwrapper_ensure_pip "$venv" || { echo "mkvenv: Internal error occured, proceeding..." >&2 && false; } };
+	then
+		if [ -n "$req" ] || [ -n "${inst}" ];
+		then
+			echo "mkvenv: Package installation is requested..."
+			_pyvenvwrapper_activate "$venv" || { echo "mkvenv: Internal error occured, can't proceed." >&2; return 1; }
+			if [ -n "$req" ];
+			then
+				echo "mkvenv: Installing packages using requirements file \"$req\"..."
+				#pip_cmd=( "pip" "install" "-q" "-r" "$req" )
+				pip_cmd=( "pip" "install" "-r" "$req" )
+				${pip_cmd[@]} || { echo "mkvenv: Internal error occured, proceeding..." >&2; }
+			fi
+			if [ -n "${inst}" ];
+			then
+				echo "mkvenv: Installing packages using requirement specification \"${inst[@]}\"..."
+				#pip_cmd=( "pip" "install" "-q" ${inst[@]} )
+				pip_cmd=( "pip" "install" ${inst[@]} )
+				${pip_cmd[@]} || { echo "mkvenv: Internal error occured, proceeding..." >&2; }
+			fi
+			deactivate || { echo "mkvenv: Internal error occured, can't proceed." >&2; return 1; }
+		fi
+	fi
+	#mk project dir if possible and not canceled via option, if needed fill with template
+	if [ "$no_proj" == false ];
+	then
+		if [ -n "$PYVENVWRAPPER_PROJ_DIR" ];
+		then
+			echo "mkvenv: Creating project directory \"$PYVENVWRAPPER_PROJ_DIR/$venv\"..."
+			if [ -d "$PYVENVWRAPPER_PROJ_DIR/$venv" ];
+			then
+				echo "mkvenv: Project directory \"$PYVENVWRAPPER_PROJ_DIR/$venv\" already exists, no need to create."
+			else
+				mkdir -p "$PYVENVWRAPPER_PROJ_DIR/$venv" || { echo "mkvenv: Internal error occured, can't proceed." >&2; return 1; }
+				echo "mkvenv: Project directory \"$PYVENVWRAPPER_PROJ_DIR/$venv\" is created."
+			fi
+			if [ -n "$templ" ];
+			then
+				echo "mkvenv: Copying template directory \"$templ/\" contents to project directory \"$PYVENVWRAPPER_PROJ_DIR/$venv/\"..."
+				cp -a --no-preserve=timestamps "$templ/." "$PYVENVWRAPPER_PROJ_DIR/$venv/" || { echo "mkvenv: Internal error occured, can't proceed." >&2; return 1; }
+				echo "mkvenv: Project directory \"$PYVENVWRAPPER_PROJ_DIR/$venv\" is filled with template from \"$templ\"."
+			fi
+		else
+			echo "mkvenv: Skipping project directory creation, because PYVENVWRAPPER_PROJ_DIR variable is not set."
+		fi
+	else
+		echo "mkvenv: Skipping project directory creation as requested by -n/--no-project option."
+	fi
+	#activate virtual environment if required
+	if [ "$act" == true ];
+	then
+		echo "mkvenv: Activating virtual environment \"$venv\"..."
+		_pyvenvwrapper_activate "$venv" || { echo "mkvenv: Internal error occured, can't proceed." >&2; return 1; }
+	fi
+	#cd if required
+	if [ "$cd_env" == true ];
+	then
+		echo "mkvenv: Changing current working directory to \"$venv\" virtual environment directory..."
+		builtin cd "$PYVENVWRAPPER_ENV_DIR/$venv" || { echo "mkvenv: Internal error occured, can't proceed." >&2; return 1; }
+	elif [ "$cd_proj" == true ];
+	then
+		echo "mkvenv: Changing current working directory to \"$venv\" project directory..."
+		builtin	cd "$PYVENVWRAPPER_PROJ_DIR/$venv" || { echo "mkvenv: Internal error occured, can't proceed." >&2; return 1; } 
+	fi
+	echo "mkvenv: Done."
+	#source hook script if it's set
+	if [ -n "$PYVENVWRAPPER_POST_MKVENV" ];
+	then
+		source "$PYVENVWRAPPER_POST_MKVENV" "venv=$venv" $arg_set || { echo "mkvenv: Internal error occured, PYVENVWRAPPER_POST_MKVENV script returned error code, can't proceed." >&2; return 1; }
+	fi
+	return 0
+}
+
+function workon() #workon command, wrapper for VIRTUAL_ENV/bin/activate
+{
+	local usage_str 
+	local help_str
+	local no_cd #bool for -n, don't cd to related project directory
+	local venv #virtual environment name argument
+	local arg_set #store arguments passed to this command to pass to hook script
+	arg_set=$@
+	no_cd=false
+	usage_str="Usage: workon [-n] VENV_NAME"
+	help_str="Help: workon command activates existing virtual environment with the name of VENV_NAME from directory specified by PYVENVWRAPPER_ENV_DIR (set to \"$PYVENVWRAPPER_ENV_DIR\"), and changes current working directory to corresponding project directory if PYVENVWRAPPER_PROJ_DIR is specified and PYVENVWRAPPER_CD_ON_WORKON is set to \"true\".
+
+  -n, --no-cd    Don't change current working directory to corresponding project
+                 directory after virtual environment activation.
+	"
+	#parse input
+	while [ $# -ne 0 ];
+	do
+		case "$1" in
+			("-h" | "--help")
+				echo "$usage_str"
+				echo "$help_str"
+				return 0
+			;;
+			("-n" | "--no-cd")
+				no_cd=true
+				shift
+			;;
+			("--")
+				venv="$2"
+				break
+			;;
+			(-*)
+				echo "workon: Syntax error, unknown option \"$1\"." >&2
+				return 2
+			;;
+			(*)
+				if [ $# -eq 1 ];
+				then
+					venv="$1"
+					break
+				else
+					echo "workon: Syntax error, couldn't parse \"$1\"." >&2
+					return 2
+				fi
+			;;
+		esac
+	done
+	#check if directory for virtual environments is specified
+	if [ -z "$PYVENVWRAPPER_ENV_DIR" ];
+	then
+		echo "pyvenvwrapper: Directory for virtual environments is not specified."$'\n'"Set PYVENVWRAPPER_ENV_DIR variable to directory containing virtual environments and try again." >&2
+		return 1
+	fi
+	#verify argument and options compliance
+	if [ -z "$venv" ];
+	then
+		echo "workon: Syntax error, virtual environment name is not provided. Use \"-h\" or \"--help\" for help." >&2
+		echo "$usage_str"
+		#may be also list existing virtual environments names
+		return 2
+	fi
+	#check that a real virtual environment name is provided
+	if [[ "$venv" == -* ]];
+	then
+		echo "workon: Syntax error, invalid virtual environment name \"$venv\"." >&2
+		return 2
+	fi
+	if [ ! -f "$PYVENVWRAPPER_ENV_DIR/$venv/bin/activate" ];
+	then
+		echo "workon: Error, no virtual environment \"$venv\" found."
+		return 1
+	fi
+	#source hook script if it's set
+	if [ -n "$PYVENVWRAPPER_PRE_WORKON" ];
+	then
+		source "$PYVENVWRAPPER_PRE_WORKON" "venv=$venv" $arg_set || { echo "workon: Internal error occured, PYVENVWRAPPER_PRE_WORKON script returned error code, can't proceed." >&2; return 1; }
+	fi
+	#try to activate
+	_pyvenvwrapper_activate "$venv" || { echo "workon: Internal error occured, can't proceed." >&2; return 1; }
+	#if activated successfully, setting for cd is set and no -n option - try to cd
+	if [ "$PYVENVWRAPPER_CD_ON_WORKON" == true ] && [ "$no_cd" != true ];
+	then
+		if [ -n "$PYVENVWRAPPER_PROJ_DIR" ];
+		then
+			builtin	cd "$PYVENVWRAPPER_PROJ_DIR/$1/" || { echo "workon: Internal error occured, can't proceed." >&2; return 1; } 
+		else
+			echo "workon: Error changing current working directory to corresponding project directory, because directory for projects is not specified."$'\n'"Set PYVENVWRAPPER_PROJ_DIR or disable changing directory on workon execution by setting PYVENVWRAPPER_CD_ON_WORKON to \"false\"." >&2
+			return 1
+		fi
+	fi
+	#source hook script if it's set
+	if [ -n "$PYVENVWRAPPER_POST_WORKON" ];
+	then
+		source "$PYVENVWRAPPER_POST_WORKON" "venv=$venv" $arg_set || { echo "workon: Internal error occured, PYVENVWRAPPER_POST_WORKON script returned error code, can't proceed." >&2; return 1; }
+	fi
+	return 0
+}
+complete -F _lsvenv workon #register auto-complete function for workon
+
+function deact() #deact command, wrapper for deactivate
+{
+	local usage_str 
+	local help_str
+	usage_str="Usage: deact"
+	help_str="Help: deact command deactivates active virtual environment, and changes current working directory back to its value at the time of virtual environment activation if PYVENVWRAPPER_CD_ON_DEACT is set to \"true\"."
+	#parse input, no arguments expected, except request for help
+	if [ "$#" -gt 0 ];
+	then
+		if [[ "$#" -eq 1 ]] && [[ "$1" == "-h" || "$1" == "--help" ]];
+		then
+			echo "$usage_str"
+			echo "$help_str"
+		else
+			echo "deact: Syntax error, deact doesn't use any arguments except \"-h\" or \"--help\"." >&2
+			echo "$usage_str"
+			return 2
+		fi
+	fi	
+	#Notice: deactivate command is available only when virtual environment is active
+	#check if any virtual environment is active and deactivate
+	if [ -n "$VIRTUAL_ENV" ];
+	then
+		#source hook script if it's set
+		if [ -n "$PYVENVWRAPPER_PRE_DEACT" ];
+		then
+			source "$PYVENVWRAPPER_PRE_DEACT" || { echo "deact: Internal error occured, PYVENVWRAPPER_PRE_DEACT script returned error code, can't proceed." >&2; return 1; }
+		fi
+		deactivate || { echo "deact: Internal error occured, can't proceed." >&2; return 1; }
+		#if option for cd is set, try to cd
+		if [ "$PYVENVWRAPPER_CD_ON_DEACT" == true ];
+		then
+			if [ -n "$PYVENVWRAPPER_OLD_CWD" ];
+			then
+				builtin cd "$PYVENVWRAPPER_OLD_CWD" || { echo "deact: Internal error occured, can't proceed." >&2; return 1; }
+			else
+				echo "deact: Error changing current working directory back to the directory used at the time of workon execution."$'\n'"The directory name is not saved - PYVENVWRAPPER_OLD_CWD is not specified, can't proceed."$'\n'"You can disable changing directory on deact execution by setting PYVENVWRAPPER_CD_ON_DEACT to \"false\"." >&2
+				return 1
+			fi
+		fi
+		#source hook script if it's set
+		if [ -n "$PYVENVWRAPPER_POST_DEACT" ];
+		then
+			source "$PYVENVWRAPPER_POST_DEACT" || { echo "deact: Internal error occured, PYVENVWRAPPER_POST_DEACT script returned error code, can't proceed." >&2; return 1; }
+		fi
+	else
+		echo "deact: No active virtual environment found, nothing to do."
+	fi
+	return 0
+}
+
+function lsvenv() #lsvenv command, outputs a list of existing virtual environments in PYVENVWRAPPER_ENV_DIR and corresponding projects in PYVENVWRAPPER_PROJ_DIR
+{
+	local usage_str 
+	local help_str
+	local loc #bool for -l, list only local packages 
+	local simp #bool for -s, use pip list instead of freeze
+	local ext #bool for -e, show extedned information
+	local pip_cmd #pip command to execute
+	local venv #name of virtual environment
+	local py_ver #string containing Python version of virtual environment
+	local pip_ver #string containing pip version of virtual environment
+	local has_pip #stores result of pip availability check
+	local arg_set #store arguments passed to this command to pass to hook script
+	arg_set=$@
+	loc=false
+	simp=false
+	ext=false
+	pip_cmd="pip"
+	usage_str="Usage: lsvevn [OPTIONS] [VENV_NAME]" 
+	help_str="Help: lsvenv command list existing virtual environments in the directory specified by PYVENVWRAPPER_ENV_DIR (set to \"$PYVENVWRAPPER_ENV_DIR\"). If used with existing virtual environment name as optional argument VENV_NAME, then lsvenv lists packages installed in this virtual environment in requirements format (alias to \"pip freeze\"). Additional options, that modify this command's behavior are described below.
+
+Combined options are not supported, i.e. instead of '-se' use '-s -e'.
+
+  -l, --local       If virtual environment has global access, do not list
+                    globally-installed packages. Has no meaning if VENV_NAME
+		    is not provided.
+  -s, --simple      Use simple output format instead of requirements format
+                    (alias to \"pip list\"). Has no meaning if VENV_NAME
+		    is not provided.
+  -e, --extended    Show additional information.
+"
+        #parse input
+	while [ $# -ne 0 ];
+	do
+		case "$1" in
+			("-h" | "--help")
+				echo "$usage_str"
+				echo "$help_str"
+				return 0
+			;;
+			("-l" | "--local")
+				loc=true
+				shift
+			;;
+			("-s" | "--simple")
+				simp=true
+				shift
+			;;
+			("-e" | "--extended")
+				ext=true
+				shift
+			;;
+			("--")
+				venv="$2"
+				break
+			;;
+			(-*)
+				echo "lsvenv: Syntax error, unknown option \"$1\"." >&2
+				return 2
+			;;
+			(*)
+				if [ $# -eq 1 ];
+				then
+					venv="$1"
+					break
+				else
+					echo "lsvenv: Syntax error, couldn't parse \"$1\"." >&2
+					return 2
+				fi
+			;;
+		esac
+	done
+	if [[ "$venv" == -* ]];
+	then
+		echo "lsvenv: Syntax error, invalid virtual environment name \"$venv\"." >&2
+		return 2
+	fi
+	#check if directory for virtual environments is specified
+	if [ -z "$PYVENVWRAPPER_ENV_DIR" ];
+	then
+		echo "pyvenvwrapper: Directory for virtual environments is not specified."$'\n'"Set PYVENVWRAPPER_ENV_DIR variable to directory containing virtual environments and try again." >&2
+		return 1
+	fi
+	#define behavior based on whether virtual environment name is provided or not
+	if [ -n "$venv" ];
+	then
+		#used with virtual environment name
+		#check if it's a real virtual environment
+		if [ ! -f "$PYVENVWRAPPER_ENV_DIR/$venv/bin/activate" ];
+		then
+			echo "lsvenv: Error, no virtual environment \"$venv\" found." >&2
+			return 1
+		fi
+		#source hook script if it's set
+		if [ -n "$PYVENVWRAPPER_PRE_LSVENV" ];
+		then
+			source "$PYVENVWRAPPER_PRE_LSVENV" "venv=$venv" $arg_set || { echo "lsvenv: Internal error occured, PYVENVWRAPPER_PRE_LSVENV script returned error code, can't proceed." >&2; return 1; }
+		fi
+		#based on options provided compose pip command
+		if [ "$simp" == true ];
+		then
+			pip_cmd=( $pip_cmd "list" )
+		else
+			pip_cmd=( $pip_cmd "freeze" )
+		fi
+		if [ "$loc" == true ];
+		then
+			pip_cmd=( ${pip_cmd[@]} "--local" )
+		fi
+		#activate virtual environment and get it's info
+		_pyvenvwrapper_activate "$venv" || { echo "lsvenv: Internal error occured, can't proceed." >&2; return 1; }
+		which pip | grep "$PYVENVWRAPPER_ENV_DIR/$venv" > /dev/null 2>&1
+		has_pip=$?
+		if [ "$ext" == true ];
+		then
+			echo "Virtual environment directory: $PYVENVWRAPPER_ENV_DIR/$venv"
+			if [ -n "$PYVENVWRAPPER_PROJ_DIR" -a -d "$PYVENVWRAPPER_PROJ_DIR/$venv" ];
+			then
+				echo "Related project directory: $PYVENVWRAPPER_PROJ_DIR/$venv"
+			else
+				echo "No related project directory." 
+			fi
+			py_ver=`python --version 2>&1 | grep -Po '(?<=^Python )(.+)' 2>/dev/null`
+			echo "Python version: $py_ver"
+			if [ "$has_pip" -eq 0 ];
+			then
+				pip_ver=`pip --version 2>&1 | grep -Po '(?<=^pip )(.+?)(?= .*)' 2>/dev/null`
+				echo "pip version: $pip_ver"
+			else
+				echo "pip is not available."
+			fi
+			echo ""
+		fi
+		if [ "$has_pip" -eq 0 ];
+		then
+			${pip_cmd[@]} || { echo "lsvenv: Internal error occured, can't proceed." >&2; deactivate; return 1; }
+		else
+			echo "lsvenv: Can't list installed packages, because pip is not available." >&2
+		fi
+		deactivate || { echo "lsvenv: Internal error occured, can't proceed." >&2; return 1; }
+	else
+		#no virtual environment name is provided, display info on all available ones
+		#source hook script if it's set
+		if [ -n "$PYVENVWRAPPER_PRE_LSVENV" ];
+		then
+			source "$PYVENVWRAPPER_PRE_LSVENV" "venv=" $arg_set || { echo "lsvenv: Internal error occured, PYVENVWRAPPER_PRE_LSVENV script returned error code, can't proceed." >&2; return 1; }
+		fi
+		_pyvenvwrapper_lsvenv || { echo "lsvenv: Internal error occured, can't list virtual environments." >&2; return 1; }
+		if [ -n "$PYVENVWRAPPER_ENVS" ];
+		then
+			if [ "$ext" == false ];
+			then
+				#no option, simply output available environment names
+				echo "$PYVENVWRAPPER_ENVS" 
+			else
+				#extended info requested, gather it and output
+				#first output general info on pyvenvwrapper
+				echo "Virtual environments directory is set to: $PYVENVWRAPPER_ENV_DIR"
+				if [ -n "$PYVENVWRAPPER_PROJ_DIR" ];
+				then
+					echo "Projects directory is set to: $PYVENVWRAPPER_PROJ_DIR"
+				else
+					echo "Projects directory is not set."
+				fi
+				if [ "$PYVENVWRAPPER_CD_ON_WORKON" == true ];
+				then
+					echo "Directory change on \"workon\": Enabled."
+				else
+					echo "Directory change on \"workon\": Disabled."
+				fi
+				if [ "$PYVENVWRAPPER_CD_ON_DEACT" == true ];
+				then
+					echo "Directory change on \"deact\": Enabled."
+				else
+					echo "Directory change on \"deact\": Disabled."
+				fi
+				if [ "$PYVENVWRAPPER_ACTIVATE_ON_CD" == true ];
+				then
+					echo "Virtual environment activation on directory change: Enabled."
+				else
+					echo "Virtual environment activation on directory change: Disabled."
+				fi
+				#output info on each available virtual environment
+				echo $'\n'"==============================Virtual environments=============================="
+				for venv in $PYVENVWRAPPER_ENVS;
+				do
+					echo " \"$venv\""
+					#activate each virtual environment and get it's info
+					_pyvenvwrapper_activate "$venv" || { echo "lsvenv: Internal error occured, can't proceed." >&2; return 1; }
+					py_ver=`python --version 2>&1 | grep -Po '(?<=^Python )(.+)' 2>/dev/null`
+					echo " Python version: $py_ver"
+					if which pip | grep "$PYVENVWRAPPER_ENV_DIR/$venv" > /dev/null 2>&1;
+					then
+						pip_ver=`pip --version 2>&1 | grep -Po '(?<=^pip )(.+?)(?= .*)' 2>/dev/null`
+						echo " pip version: $pip_ver"
+					else
+						echo " pip is not available."
+					fi
+					deactivate || { echo "lsvenv: Internal error occured, can't proceed." >&2; return 1; }
+					if [ -n "$PYVENVWRAPPER_PROJ_DIR" -a -d "$PYVENVWRAPPER_PROJ_DIR/$venv" ];
+					then
+						echo " Related project: Yes."
+					else
+						echo " Related project: No." 
+					fi
+					echo "--------------------------------------------------------------------------------"
+				done
+			fi
+		else
+			echo "No existing virtual envirtonments found."
+		fi
+	fi
+	#source hook script if it's set
+	if [ -n "$PYVENVWRAPPER_POST_LSVENV" ];
+	then
+		source "$PYVENVWRAPPER_POST_LSVENV" "venv=$venv" $arg_set || { echo "lsvenv: Internal error occured, PYVENVWRAPPER_POST_LSVENV script returned error code, can't proceed." >&2; return 1; }
+	fi
+	return 0
+}
+complete -F _lsvenv lsvenv #register auto-complete function for lsvenv
+
+function cdvenv() #cdvenv command, changes directory to specified virtual environment directory or project directory, or directly to sire-packages if options specified
+{
+	local usage_str
+	local help_str
+	local site #bool for -s, cd to site-packages
+	local proj #bool for -p, cd to project directory
+	local venv #name of virtual environment
+	local arg_set #store arguments passed to this command to pass to hook script
+	arg_set=$@
+	site=false
+	proj=false
+	usage_str="Usage: cdvenv [OPTIONS] VENV_NAME" 
+	help_str="Help: cdvenv command changes current working directory to directory of virtual environment specified by VENV_NAME argument. Additional options, that modify this command's behavior are described below.
+
+  -s, --site       Change current working directory to virtual environment's
+                   site-packages directory instead.
+		   Precludes use of -p option.
+  -p, --project    Change current working directory to virtual environment's
+                   related project directory instead.
+		   Precludes use of -s option.
+"
+        #parse input
+	while [ $# -ne 0 ];
+	do
+		case "$1" in
+			("-h" | "--help")
+				echo "$usage_str"
+				echo "$help_str"
+				return 0
+			;;
+			("-s" | "--site")
+				site=true
+				shift
+			;;
+			("-p" | "--project")
+				proj=true
+				shift
+			;;
+			("--")
+				venv="$2"
+				break
+			;;
+			(-*)
+				echo "cdvenv: Syntax error, unknown option \"$1\"." >&2
+				return 2
+			;;
+			(*)
+				if [ $# -eq 1 ];
+				then
+					venv="$1"
+					break
+				else
+					echo "cdvenv: Syntax error, couldn't parse \"$1\"." >&2
+					return 2
+				fi
+			;;
+		esac
+	done
+	#check if directory for virtual environments is specified
+	if [ -z "$PYVENVWRAPPER_ENV_DIR" ];
+	then
+		echo "pyvenvwrapper: Directory for virtual environments is not specified."$'\n'"Set PYVENVWRAPPER_ENV_DIR variable to directory containing virtual environments and try again." >&2
+		return 1
+	fi
+	#verify argument and options compliance
+	if [ -z "$venv" ];
+	then
+		echo "cdvenv: Syntax error, virtual environment name is not provided. Use \"-h\" or \"--help\" for help." >&2
+		echo "$usage_str"
+		return 2
+	fi
+	if [[ "$venv" == -* ]];
+	then
+		echo "cdvenv: Syntax error, invalid virtual environment name \"$venv\"." >&2
+		return 2
+	fi
+	#check if name provided is a real virtual envirtonment name
+	if [ ! -f "$PYVENVWRAPPER_ENV_DIR/$venv/bin/activate" ];
+	then
+		echo "cdvenv: Error, no virtual environment \"$venv\" found." >&2
+		return 1
+	fi
+	#check if options comply and cd to project folder if possible
+	if [ "$proj" == true ];
+	then
+		if [ "$site" == true ];
+		then
+			echo "cdvenv: Syntax error, -s/--site option contradicts -p/--project option. Use one of these, but not both." >&2
+			return 2
+		fi
+		if [ -z "$PYVENVWRAPPER_PROJ_DIR" ];
+		then
+			echo "cdvenv: Error, can't change current directory to \"$venv\" related project directory, because directory for projects is not specified."$'\n'"Set PYVENVWRAPPER_PROJ_DIR variable and try again." >&2
+			return 1
+		else
+			if [ -d "$PYVENVWRAPPER_PROJ_DIR/$venv" ];
+			then
+				#source hook script if it's set
+				if [ -n "$PYVENVWRAPPER_PRE_CDVENV" ];
+				then
+					source "$PYVENVWRAPPER_PRE_CDVENV" "venv=$venv" $arg_set || { echo "cdvenv: Internal error occured, PYVENVWRAPPER_PRE_CDVENV script returned error code, can't proceed." >&2; return 1; }
+				fi
+				cd "$PYVENVWRAPPER_PROJ_DIR/$venv" || { echo "cdvenv: Internal error occured, can't proceed." >&2; return 1; }
+				#source hook script if it's set
+				if [ -n "$PYVENVWRAPPER_POST_CDVENV" ];
+				then
+					source "$PYVENVWRAPPER_POST_CDVENV" "venv=$venv" $arg_set || { echo "cdvenv: Internal error occured, PYVENVWRAPPER_POST_CDVENV script returned error code, can't proceed." >&2; return 1; }
+				fi
+				return 0
+			else
+				echo "cdvenv: Error, no project folder related to virtual environment \"$venv\" found." >&2
+				return 1
+			fi
+		fi
+	fi
+	#source hook script if it's set
+	if [ -n "$PYVENVWRAPPER_PRE_CDVENV" ];
+	then
+		source "$PYVENVWRAPPER_PRE_CDVENV" "venv=$venv" $arg_set || { echo "cdvenv: Internal error occured, PYVENVWRAPPER_PRE_CDVENV script returned error code, can't proceed." >&2; return 1; }
+	fi
+	#check if asked to cd to site-packages and cd
+	if [ "$site" == true ];
+	then
+		cd "$PYVENVWRAPPER_ENV_DIR/$venv/lib/python*/site-packages" || { echo "cdvenv: Internal error occured, can't proceed." >&2; return 1; }
+		return 0
+	fi
+	#by default cd to virtual environment folder
+	cd "$PYVENVWRAPPER_ENV_DIR/$venv" || { echo "cdvenv: Internal error occured, can't proceed." >&2; return 1; }
+	#source hook script if it's set
+	if [ -n "$PYVENVWRAPPER_POST_CDVENV" ];
+	then
+		source "$PYVENVWRAPPER_POST_CDVENV" "venv=$venv" $arg_set || { echo "cdvenv: Internal error occured, PYVENVWRAPPER_POST_CDVENV script returned error code, can't proceed." >&2; return 1; }
+	fi
+	return 0
+}
+complete -F _lsvenv cdvenv #register auto-complete function for cdvenv
+
+function cpvenv() #cpvevn command, creates a copy of existing virtual environment
+{
+	local usage_str
+	local help_str
+	local force #bool for -f, overwrite data in destination directories
+	local proj #bool for -p, copy contents of project directory
+	local no_proj #bool for -n, don't create project directory
+	local src_venv #name of source virtual environment
+	local dst_venv #name of destination virtual environment
+	local arg_set #store arguments passed to this command to pass to hook script
+	arg_set=$@
+	proj=false
+	no_proj=false
+	usage_str="Usage: cpvenv [OPTIONS] SRC_VENV_NAME DST_VENV_NAME" 
+	help_str="Help: cpvenv command creates a copy of virtual environment. It copies all contents of SRC_VENV_NAME virtual environment directory to a new directory for virtual environment with the name specified by DST_VENV_NAME. If PYVENVWRAPPER_PROJ_DIR is set, cpvenv also creates a new project directory related to new virtual environment with DST_VENV_NAME. cpvenv will not overwrite any existing data in DST_VENV_NAME virtual environment directory (and related project directory) if it already exists and is not empty, unless -f option is provided. Additional options, that modify this command's behavior are described below.
+
+Note: Depending on the name of source virtual environment destination virtual environment might be broken after copy. This is due to renaming in destination virtual environment which has to take place because of how virtual environments work. Source virtual environment will not be affected in any way.
+
+Combined options are not supported, i.e. instead of '-fp' use '-f -p'.
+
+  -f, --force         Overwrite data in DST_VENV_NAME virtual environment
+                      directory (and related project directory) if it already
+		      exists and is not empty.
+  -p, --project       Copy contents of project directory related to
+                      SRC_VENV_NAME virtual environment to new project directory
+                      related to DST_VENV_NAME virtual environment.
+		      Precludes use of -n option.
+  -n, --no-project    Don't create project directory.
+                      Precludes use of -p option.
+"
+        #parse input
+	while [ $# -ne 0 ];
+	do
+		case "$1" in
+			("-h" | "--help")
+				echo "$usage_str"
+				echo "$help_str"
+				return 0
+			;;
+			("-f" | "--force")
+				force=true
+				shift
+			;;
+			("-p" | "--project")
+				proj=true
+				shift
+			;;
+			("-n" | "--no-project")
+				no_proj=true
+				shift
+			;;
+			("--")
+				src_venv="$2"
+				dst_venv="$3"
+				break
+			;;
+			(-*)
+				echo "cpvenv: Syntax error, unknown option \"$1\"." >&2
+				return 2
+			;;
+			(*)
+				if [ $# -le 2 ] && [[ "$2" != -* ]];
+				then
+					src_venv="$1"
+					dst_venv="$2"
+					break
+				else
+					echo "cpvenv: Syntax error, couldn't parse \"$1\"." >&2
+					return 2
+				fi
+			;;
+		esac
+	done
+	#check if directory for virtual environments is specified
+	if [ -z "$PYVENVWRAPPER_ENV_DIR" ];
+	then
+		echo "pyvenvwrapper: Directory for virtual environments is not specified."$'\n'"Set PYVENVWRAPPER_ENV_DIR variable to directory containing virtual environments and try again." >&2
+		return 1
+	fi
+	#verify argument compliance
+	if [ -z "$src_venv" ] || [ -z "$dst_venv" ];
+	then
+		echo "cpvenv: Syntax error, cpvenv requires two arguments. Use \"-h\" or \"--help\" for help." >&2
+		echo "$usage_str"
+		return 2
+	fi
+	if [[ "$src_venv" == -* ]];
+	then
+		echo "cpvenv: Syntax error, invalid source virtual environment name \"$src_venv\"." >&2
+		return 2
+	fi
+	if [[ "$dst_venv" == -* ]];
+	then
+		echo "cpvenv: Syntax error, invalid destination virtual environment name \"$dst_venv\"." >&2
+		return 2
+	fi
+	#check if name provided is real virtual environment name
+	if [ ! -f "$PYVENVWRAPPER_ENV_DIR/$src_venv/bin/activate" ];
+	then
+		echo "cpvenv: Error, no source virtual environment \"$src_venv\" found." >&2
+		return 1
+	fi
+	#verify options compliance
+	if [ "$proj" == true ];
+	then
+		if [ "$no_proj" == true ];
+		then
+			echo "cpvenv: Syntax error, -p/--project option contradicts -n/--no-project option. Use one of these, but not both." >&2
+			return 2
+		fi
+		if [ -z "$PYVENVWRAPPER_PROJ_DIR" ];
+		then
+			echo "cpvenv: Error, won't be able to copy related project directory contents, because directory for projects is not specified."$'\n'"Set PYVENVWRAPPER_PROJ_DIR variable and try again." >&2
+			return 1
+		fi
+		if [ ! -d "$PYVENVWRAPPER_PROJ_DIR/$src_venv" ];
+		then
+			echo "cpvenv: Error, won't be able to copy related project directory contents, because source virtual environment \"$src_venv\" doesn't have related project directory \"$PYVENVWRAPPER_PROJ_DIR/$src_venv\"." >&2
+			return 1
+		fi
+		#cpvenv doesn't overwrite related project directory data if -f option is not provided
+		if [ -d "$PYVENVWRAPPER_PROJ_DIR/$dst_venv" ] && [ -n "$(ls -AL "$PYVENVWRAPPER_PROJ_DIR/$dst_venv")" ] && [ "$force" != true ];
+		then
+			echo "cpvenv: Error, won't be able to copy related project directory contents, because destination virtual environment \"$dst_venv\" related project directory \"$PYVENVWRAPPER_PROJ_DIR/$dst_venv\" already exists and it is not empty."$'\n'"Empty it manually or run cpvenv with -f option to overwrite its contents." >&2
+			return 1
+		fi
+	fi
+	#cpvenv doesn't overwrite virtual environment directory data if -f option is not provided
+	if [ -d "$PYVENVWRAPPER_ENV_DIR/$dst_venv" ] && [ -n "$(ls -AL "$PYVENVWRAPPER_ENV_DIR/$dst_venv")" ] && [ "$force" != true ];
+	then
+		echo "cpvenv: Error, can't create a copy of source virtual environment \"$src_venv\" with the name of destination virtual environment \"$dst_venv\", because destination virtual environment \"$dst_venv\" directory \"$PYVENVWRAPPER_ENV_DIR/$dst_venv\" already exists and it is not empty."$'\n'"Empty it manually or run cpvenv with -f option to overwrite its contents." >&2
+		return 1
+	fi
+	#source hook script if it's set
+	if [ -n "$PYVENVWRAPPER_PRE_CPVENV" ];
+	then
+		source "$PYVENVWRAPPER_PRE_CPVENV" "venv=$src_venv" "dst=$dst_venv" $arg_set || { echo "cpvenv: Internal error occured, PYVENVWRAPPER_PRE_CPVENV script returned error code, can't proceed." >&2; return 1; }
+	fi
+	#after all the checks dst_venv either: doesn't exist, exists and is empty, or not empty but -f option is provided
+	#so just cp -a -f, will create it if doesn't exist, if exists just fill it, if not empty overwrite
+	cp -a -f --no-preserve=timestamps "$PYVENVWRAPPER_ENV_DIR/$src_venv/." "$PYVENVWRAPPER_ENV_DIR/$dst_venv/" || { echo "cpvenv: Internal error occured, can't proceed." >&2; return 1; }
+	#files in virtual environment contain path with virtual environment name, and
+	#activation scripts also contain this name, so need to replace it everywhere in new virtual environment
+	#Note: destination virtual environment might be broken if source virtual environment name is not "unique"
+	#i.e. src_venv="if" will defenetly break destination virtual environment
+	grep -rl "$src_venv" "$PYVENVWRAPPER_ENV_DIR/$dst_venv" | xargs sed -i "s#$src_venv#$dst_venv#g" || { echo "cpvenv: Internal error occured, can't proceed." >&2; return 1; }
+	if [ "$no_proj" == false ];
+	then
+		#check if directory for projects variable is set, otherwise just skip related project directory creation
+		if [ -n "$PYVENVWRAPPER_PROJ_DIR" ];
+		then
+			#by default try to create related project directory if it doesn't exist
+			if [ -d "$PYVENVWRAPPER_PROJ_DIR/$dst_venv" ];
+			then
+				echo "cpvenv: Project directory \"$PYVENVWRAPPER_PROJ_DIR/$dst_venv\" already exists, no need to create."
+			else
+				mkdir -p "$PYVENVWRAPPER_PROJ_DIR/$dst_venv" || { echo "cpvenv: Internal error occured, can't proceed." >&2; return 1; }
+			fi
+			#check if requested to copy related project directory contents and do it
+			if [ "$proj" == true ];
+			then
+				#after all the checks dst_venv related project directory either: doesn't exist, exists and is empty, or not empty but -f option is provided
+				#so just cp -a -f, will create it if doesn't exist, if exists just fill it, if not empty overwrite
+				cp -a -f --no-preserve=timestamps "$PYVENVWRAPPER_PROJ_DIR/$src_venv/." "$PYVENVWRAPPER_PROJ_DIR/$dst_venv/" || { echo "cpvenv: Internal error occured, can't proceed." >&2; return 1; }
+			fi
+		else
+			echo "cpvenv: Skipping project directory creation, because PYVENVWRAPPER_PROJ_DIR variable is not set."
+		fi
+	else
+		#requested not to create project directory
+		echo "cpvenv: Skipping project directory creation as requested by -n/--no-project option."
+	fi
+	#source hook script if it's set
+	if [ -n "$PYVENVWRAPPER_POST_CPVENV" ];
+	then
+		source "$PYVENVWRAPPER_POST_CPVENV" "venv=$src_venv" "dst=$dst_venv" $arg_set || { echo "cpvenv: Internal error occured, PYVENVWRAPPER_POST_CPVENV script returned error code, can't proceed." >&2; return 1; }
+	fi
+	return 0
+}
+complete -F _lsvenv cpvenv #register auto-complete function for cpvenv
+
+function rmvenv() #rmvenv command, removes specified virtual environment and optionally corresponding project folder
+{
+	local usage_str
+	local help_str
+	local force #bool for -f, don't prompt for any confirmations
+	local proj #bool for -p, also delete related project directory
+	local venv #name of virtual environment
+	local answer #reply to confirmation prompt
+	local arg_set #store arguments passed to this command to pass to hook script
+	arg_set=$@
+	force=false
+	proj=false
+	usage_str="Usage: rmvenv [OPTIONS] VENV_NAME" 
+	help_str="Help: rmvenv command removes virtual environment directory with the name specified by VENV_NAME. Additional options, that modify this command's behavior are described below.
+
+Combined options are not supported, i.e. instead of '-fp' use '-f -p'.
+
+  Be cautious when using options!
+  -f, --force      Don't prompt for any confirmations. 
+  -p, --project    Also remove related project directory with all contents.
+"
+        #parse input
+	while [ $# -ne 0 ];
+	do
+		case "$1" in
+			("-h" | "--help")
+				echo "$usage_str"
+				echo "$help_str"
+				return 0
+			;;
+			("-f" | "--force")
+				force=true
+				shift
+			;;
+			("-p" | "--project")
+				proj=true
+				shift
+			;;
+			("--")
+				venv="$2"
+				break
+			;;
+			(-*)
+				echo "rmvenv: Syntax error, unknown option \"$1\"." >&2
+				return 2
+			;;
+			(*)
+				if [ $# -eq 1 ];
+				then
+					venv="$1"
+					break
+				else
+					echo "rmvenv: Syntax error, couldn't parse \"$1\"." >&2
+					return 2
+				fi
+			;;
+		esac
+	done
+	#check if directory for virtual environments is specified
+	if [ -z "$PYVENVWRAPPER_ENV_DIR" ];
+	then
+		echo "pyvenvwrapper: Directory for virtual environments is not specified."$'\n'"Set PYVENVWRAPPER_ENV_DIR variable to directory containing virtual environments and try again." >&2
+		return 1
+	fi
+	#verify argument and options compliance
+	if [ -z "$venv" ];
+	then
+		echo "rmvenv: Syntax error, virtual environment name is not provided. Use \"-h\" or \"--help\" for help." >&2
+		echo "$usage_str"
+		return 2
+	fi
+	if [[ "$venv" == -* ]];
+	then
+		echo "rmvenv: Syntax error, invalid virtual environment name \"$venv\"." >&2
+		return 2
+	fi
+	#check if setting for folder containing projects is set if requested to also delete related project folder
+	if [ "$proj" == true ] && [ -z "$PYVENVWRAPPER_PROJ_DIR" ];
+	then
+		echo "rmvenv: Error, won't be able to remove \"$venv\" related project directory, because directory for projects is not specified."$'\n'"Set PYVENVWRAPPER_PROJ_DIR variable and try again." >&2
+		return 1
+	fi
+	#source hook script if it's set
+	if [ -n "$PYVENVWRAPPER_PRE_RMVENV" ];
+	then
+		source "$PYVENVWRAPPER_PRE_RMVENV" "venv=$venv" $arg_set || { echo "rmvenv: Internal error occured, PYVENVWRAPPER_PRE_RMVENV script returned error code, can't proceed." >&2; return 1; }
+	fi
+	#check if virtual environment with provided name exists, and delete virtual environment folder
+	if [ -f "$PYVENVWRAPPER_ENV_DIR/$venv/bin/activate" ];
+	then
+		#loop to get confirmation from user
+		while true;
+		do
+			answer="no"
+			#if -f option provided use "yes" as default answer and don't prompt
+			if [ "$force" == true ];
+			then
+				answer="yes"
+			else
+				read -r -p "rmvenv: Are you sure you want to delete virtual environment \"$venv\"? ([Y]es/[N]o)" answer || { echo "rmvenv: Internal error occured, can't proceed." >&2; return 1; }
+
+			fi
+			case $answer in
+				([Yy][Ee][Ss]|[Yy])
+					rm -r -f "$PYVENVWRAPPER_ENV_DIR/$venv" || { echo "rmvenv: Internal error occured, can't proceed." >&2; return 1; }
+					break
+				;;
+				([Nn][Oo]|[Nn])
+					break
+				;;
+				(*)
+					#loop till explicit yes or no is provided
+					echo "rmvenv: Invalid input. Please type [Y]es or [N]o."
+				;;
+			esac
+		done
+		#check if project folder deletion requested and delete if need be
+		if [ "$proj" == true ];
+		then
+			#check if project folder exists and do similar job as with virtual environment folder
+			if [ -d "$PYVENVWRAPPER_PROJ_DIR/$venv" ];
+			then
+				#loop to get confirmation from user
+				while true;
+				do
+					answer="no"
+					#if -f option provided use "yes" as default answer and don't prompt
+					if [ "$force" == true ];
+					then
+						answer="yes"
+					else
+						read -r -p "rmvenv: Are you sure you want to delete project directory \"$PYVENVWRAPPER_PROJ_DIR/$venv\" related to virtual environment \"$venv\"? ([Y]es/[N]o)" answer || { echo "rmvenv: Internal error occured, can't proceed." >&2; return 1; }
+
+					fi
+					case $answer in
+						([Yy][Ee][Ss]|[Yy])
+							rm -r -f "$PYVENVWRAPPER_PROJ_DIR/$venv" || { echo "rmvenv: Internal error occured, can't proceed." >&2; return 1; }
+							break
+						;;
+						([Nn][Oo]|[Nn])
+							break
+						;;
+						(*)
+							#loop till explicit yes or no is provided
+							echo "rmvenv: Invalid input. Please type [Y]es or [N]o." >&2
+						;;
+					esac
+				done
+			else
+				echo "rmvenv: No project directory related to virtual environment \"$venv\" found. Nothing to do."
+			fi
+		fi
+	else
+		echo "rmvenv: No virtual environment \"$venv\" found. Nothing to do."
+	fi
+	#source hook script if it's set
+	if [ -n "$PYVENVWRAPPER_POST_RMVENV" ];
+	then
+		source "$PYVENVWRAPPER_POST_RMVENV" "venv=$venv" $arg_set || { echo "rmvenv: Internal error occured, PYVENVWRAPPER_POST_RMVENV script returned error code, can't proceed." >&2; return 1; }
+	fi
+	return 0
+}
+complete -F _lsvenv rmvenv #register auto-complete function for rmvenv
+
+#check if option to add activation/deactivation behavior to cd/popd/pushd is set and add this behavior
+if [ "$PYVENVWRAPPER_ACTIVATE_ON_CD" == true ]; 
+then
+
+	function _pyvenvwrapper_act_on_cd() #Internal use. Called after directory change. expects one argument - directory used before change. Checks if current working directory is a virtual environment or related project directory and activates corresponding virtual environment, and saves old working directory (provided as argument), otherwise checks if there's active virtual environmetn and deactivates it.
+	{
+		local arg_set #store arguments passed to this function to pass to hook script
+		arg_set=$@
+		if [ -z "$PYVENVWRAPPER_ENV_DIR" ] || [ "$#" -ne 1 ];
+		then
+			return 1
+		fi
+		local old_cwd #old working directory
+		local cur_dir #current working directory at time of this function call
+		local env_dir #environment directory pattern
+		local prj_dir #project directory pattern
+		local env_name #name of virual environment related to current working directory, if there is any
+		old_cwd="$1"
+		cur_dir=`pwd -P` > /dev/null 2>&1 || return 1
+		env_dir="$PYVENVWRAPPER_ENV_DIR/*"
+		prj_dir="$PYVENVWRAPPER_PROJ_DIR/*"
+		if [[ $cur_dir == $env_dir ]];
+		then
+			#somewhere in directory for virtual environments tree, parse possible virtual environment name
+			env_name="$(echo "$cur_dir/" | grep -Po "(?<=^$PYVENVWRAPPER_ENV_DIR/)(.*?)(?=/.*)" 2>/dev/null)" || return 1
+		elif [[ -n "$PYVENVWRAPPER_PROJ_DIR" && $cur_dir == $prj_dir ]];
+		then
+			#somewhere in directory for projects tree, parse possible related virtual environment name
+			env_name="$(echo "$cur_dir/" | grep -Po "(?<=^$PYVENVWRAPPER_PROJ_DIR/)(.*?)(?=/.*)" 2>/dev/null)" || return 1
+		fi
+		#check if parsed name is a real virtual environment and not just a folder
+		if [[ -n "$env_name" && -f "$PYVENVWRAPPER_ENV_DIR/$env_name/bin/activate" ]];
+		then
+			#source hook script if it's set
+			if [ -n "$PYVENVWRAPPER_PRE_ACT_ON_CD" ];
+			then
+				source "$PYVENVWRAPPER_PRE_ACT_ON_CD" "venv=$env_name" $arg_set || return 1
+			fi
+			#check if parsed virtual environment name is not the same as active virtual environment(if there's any), otherwise no need to do anything
+			if [[ "$PYVENVWRAPPER_ENV_DIR/$env_name" != "$VIRTUAL_ENV" ]];
+			then
+				#deactivate if there's an active virtual environment
+				if [ -n "$VIRTUAL_ENV" ];
+				then
+					deactivate || return 1
+				fi
+				#activate virtual environment corresponding to the folder where cd'ed 
+				source "$PYVENVWRAPPER_ENV_DIR/$env_name/bin/activate" || return 1
+				#save old folder to return on deact
+				PYVENVWRAPPER_OLD_CWD="$old_cwd"
+			fi
+			#source hook script if it's set
+			if [ -n "$PYVENVWRAPPER_POST_ACT_ON_CD" ];
+			then
+				source "$PYVENVWRAPPER_POST_ACT_ON_CD" "venv=$env_name" $arg_set || return 1
+			fi
+		else
+			#cd'ed to a simple folder with no corresponding virtual environment
+			#check if there's any active virtual environment and deactivate
+			if [ -n "$VIRTUAL_ENV" ];
+			then
+				deactivate || return 1
+			fi
+		fi	
+		return 0
+	}
+	
+	function cd() #Redefines built-in cd in order to activate virtual environment if cd'ed inside one of environmetns' or projects' directory, otherwise deactivate virtual environment if it's active
+	{
+		local op_result #builtin operation result
+		local old_cwd #working directory used before directory change
+		old_cwd=`pwd` > /dev/null 2>&1
+		builtin cd $@
+		op_result=$?
+		#if cd succeeded call activation/deactivation function
+		if [ "$op_result" -eq 0 ];
+		then
+			_pyvenvwrapper_act_on_cd "$old_cwd" > /dev/null 2>&1
+		fi
+		return $op_result
+	}
+	
+	function popd() #Redefines built-in popd in order to activate virtual environment if popd'ed inside one of environmetns' or projects' directory, otherwise deactivate virtual environment if it's active
+	{
+		local op_result #builtin operation result
+		local old_cwd #working directory used before directory change
+		old_cwd=`pwd` > /dev/null 2>&1
+		builtin popd $@
+		op_result=$?
+		#if popd succeeded call activation/deactivation function
+		if [ "$op_result" -eq 0 ];
+		then
+			_pyvenvwrapper_act_on_cd "$old_cwd" > /dev/null 2>&1
+		fi
+		return $op_result
+	}
+
+	function pushd() #Redefines built-in pushd in order to activate virtual environment if pushd'ed inside one of environmetns' or projects' directory, otherwise deactivate virtual environment if it's active
+	{
+		local op_result #builtin operation result
+		local old_cwd #working directory used before directory change
+		old_cwd=`pwd` > /dev/null 2>&1
+		builtin pushd $@
+		op_result=$?
+		#if pushd succeeded call activation/deactivation function
+		if [ "$op_result" -eq 0 ];
+		then
+			_pyvenvwrapper_act_on_cd "$old_cwd" > /dev/null 2>&1
+		fi
+		return $op_result
+	}
+fi
+
+#pyvenvwrapper part END

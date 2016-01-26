@@ -1,0 +1,70 @@
+#pyvenvwrapper settings
+#The MIT License (MIT)
+#Copyright (c) 2016 Nikita Solovyev 
+# 
+#Permission is hereby granted, free of charge, to any person obtaining a copy 
+#of this software and associated documentation files (the "Software"), to deal 
+#in the Software without restriction, including without limitation the rights to
+#use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies 
+#of the Software, and to permit persons to whom the Software is furnished to do 
+#so, subject to the following conditions:
+#
+#The above copyright notice and this permission notice shall be included in all 
+#copies or substantial portions of the Software.
+#
+#THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+#IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+#FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+#AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+#LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+#OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
+#SOFTWARE.
+
+#pyvenvwrapper part BEGIN
+
+#Main variables for global settings
+PYVENVWRAPPER_ENV_DIR=~/.virtualenvs #Directory to keep virtual environments. No symlinks allowed.
+PYVENVWRAPPER_PROJ_DIR=~/projects #Directory to keep project folders. No symlinks allowed.
+PYVENVWRAPPER_CD_ON_WORKON=true #Change directory to corresponding project directory after virtual environment activation with workon. Possible values: true/false. Requires PYVENVWRAPPER_PROJ_DIR to be set in order to work.
+PYVENVWRAPPER_CD_ON_DEACT=true #Change directory to the one used at the time of workon execution after virtual environment deactivation with deact call. Possible values: true/false.
+PYVENVWRAPPER_ACTIVATE_ON_CD=true #Redefine cd, popd, pushd to activate virtual environment if directory changed to one of virtual environments' or corresponding projects' directory, otherwise do nothing or deactivate active virtual environment. Possible values: true/false. Requires shell reboot after changing. Note: redefined functions are intended to be transparent, so argumetns of original built-in functions are not affected in any way, return value are always that of wrapped built-in and no additional output related to added behavior is introduced.
+
+#Hooks that will be sourced before and after each command. Provide a path to a script file as a value for the following variables.
+#The script you provide will be sourced:
+#for PRE command - before any actions are taken, but after command line options and arguments are parsed and verified  
+#for POST command - after all actions are taken, as last instructions, but only if no errors occured
+#For convenience every script defined for this variables will get "venv=VENV_NAME" as first argument and all the arguments from command line as subsequent arguments.
+#Special cases are:
+#LSVENV might be called without VENV_NAME, therefore "venv=" might be provided;
+#CPVENV will get "venv=SRC_VENV" and "dst=DST_VENV" as first and second arguments and all the arguments from command line as subsequent arguments. [VENV_NAME], [SRC_VENV], [DST_VENV] will be the actual virtual environments names provided as argument to corresponding command;
+#DEACT will not get any arguments as it doesn't use any. Though active virtual evironment sets VIRTUAL_ENV variable, so you can use it.
+#Your script should 'return 0' in the end if no errors occured. If the sourced script will return any return code other than '0' then the command will be aborted with error.
+#Sourced before and after mkvenv
+PYVENVWRAPPER_PRE_MKVENV=
+PYVENVWRAPPER_POST_MKVENV=
+#Sourced before and after lsvenv
+PYVENVWRAPPER_PRE_LSVENV=
+PYVENVWRAPPER_POST_LSVENV=
+#Sourced before and after cdvenv
+PYVENVWRAPPER_PRE_CDVENV=
+PYVENVWRAPPER_POST_CDVENV=
+#Sourced before and after rmvenv 
+PYVENVWRAPPER_PRE_RMVENV=
+PYVENVWRAPPER_POST_RMVENV=
+#Sourced before and after cpvenv 
+PYVENVWRAPPER_PRE_CPVENV=
+PYVENVWRAPPER_POST_CPVENV=
+#Sourced before and after workon
+PYVENVWRAPPER_PRE_WORKON=
+PYVENVWRAPPER_POST_WORKON=
+#Sourced before and after deact
+PYVENVWRAPPER_PRE_DEACT=
+PYVENVWRAPPER_POST_DEACT=
+#Sourced before and after virtual environment activation on directory change if PYVENVWRAPPER_ACT_ON_CD is enabled
+PYVENVWRAPPER_PRE_ACT_ON_CD=
+PYVENVWRAPPER_POST_ACT_ON_CD=
+#If cd to directory not related in any way to any virtual environment, hooks are not called.
+#If cd to directory related to virtual environment, even if there's any already active virtual environment, the PRE hook will be source before currently active environment deactivation.
+#Note: any output to console will be suppresed, so don't expect you hook scripts to display anything
+
+#pyvenvwrapper part END

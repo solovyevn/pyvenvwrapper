@@ -1,0 +1,4 @@
+include pyvenvwrapper/pyvenvwrapper_settings
+include pyvenvwrapper/pyvenvwrapper
+include *.txt *.rst
+graft docs
