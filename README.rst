@@ -6,7 +6,9 @@ This functions allow to create and manipulate virtual environments and correspon
 
 **pyvenvwrapper** can be used to manage virtual environments and corresponding project folders or only virtual environments. In former case it assumes that the same name is used for virtual environment folder and the project folder which uses this virtual environment. The directories containing this folders are configured using special variables.
 
-The idea to create pyvenvwrapper is inspired by using virtualenvwrapper_, which at that moment didn't have support for pyvenv virtual environment management. *pyvenvwrapper code is in no way related to virtualenvwrapper code.* 
+The idea to create pyvenvwrapper is inspired by using virtualenvwrapper_, which at that moment didn't have support for pyvenv virtual environment management. *pyvenvwrapper code is in no way related to virtualenvwrapper code.*
+
+`Full pyvenvwrapper documentation`_ is available online at readthedocs.org.
 
 ------------------------------------------------------------
 
@@ -98,3 +100,4 @@ The above copyright notice and this permission notice shall be included in all c
 .. _virtualenvwrapper: https://pypi.python.org/pypi/virtualenvwrapper/
 .. _`GitHub Issues`: https://github.com/solovyevn/pyvenvwrapper/issues
 .. _pyvenvwrapper: https://github.com/solovyevn/pyvenvwrapper
+.. _`Full pyvenvwrapper documentation`: http://pyvenvwrapper.readthedocs.org/en/latest/
