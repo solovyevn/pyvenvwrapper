@@ -13,7 +13,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as readme:
 
 setup(
     name='pyvenvwrapper',
-    version='0.1.0b0',
+    version='0.1.0b1',
     description='pyvenvwrapper is a small and lightweight set of Bash script functions, that enhance the use of Python pyvenv tool.',
     long_description=long_description,
     url='https://github.com/solovyevn/pyvenvwrapper',
