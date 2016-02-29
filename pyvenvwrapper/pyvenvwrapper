@@ -1,4 +1,7 @@
-#pyvenvwrapper
+#===================
+#pyvenvwrapper 0.1.0
+#===================
+#
 #The MIT License (MIT)
 #Copyright (c) 2016 Nikita Solovyev
 #
@@ -20,8 +23,7 @@
 #OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 #SOFTWARE.
 
-#pyvenvwrapper part BEGIN
-
+#REFERENCE_SETTINGS description BEGIN
 <<REFERENCE_SETTINGS
 #Main variables for global settings
 PYVENVWRAPPER_ENV_DIR=~/.virtualenvs #Directory to keep virtual environments. No symlinks allowed.
@@ -68,40 +70,9 @@ PYVENVWRAPPER_POST_ACT_ON_CD=
 #If cd to directory related to virtual environment, even if there's any already active virtual environment, the PRE hook will be source before currently active environment deactivation.
 #Note: any output to console will be suppresed, so don't expect you hook scripts to display anything
 REFERENCE_SETTINGS
+#REFERENCE_SETTINGS description END
 
-function pyvenvwrapper() #Display possible commands
-{
-	echo "
-        pyvenvwrapper 0.1.0b0
-Copyright (c) 2016 Nikita Solovyev
-
-pyvenvwrapper includes the following commands:
-
- mkvenv - creates virtual environment and optionally related project folder;
-
- workon - activates existing virtual environment and optionally changes current
-          working directory to related project folder;
-
- deact - deactivates currently active virtual environment and optionally changes
-         current working directory back to the one used before this virtual
-         environment activation;
-
- lsvenv - prints existing virtual environments' names, or if used with virtual
-          environment name as argument prints packages installed in it;
-
- cdvenv - changes current working directory to specified virtual environments
-          directory, or related project directory depending on provided options;
-
- cpvenv - copies existing virtual environment with new name and optionally
-          related project folder;
-
- rmvenv - deletes existing virtual environment and optionally related project
-          folder.
-
-Use '[command] -h' or '[command] --help' to see usage and possible options for each command.
-"
-	return 0
-}
+#pyvenvwrapper part BEGIN
 
 function _pyvenvwrapper_ensure_pip() #Internal use. Checks if pip is available in virtual environment provided as argument and tries to install pip if not
 {

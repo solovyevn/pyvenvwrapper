@@ -5,6 +5,7 @@
 """pyvenvwrapper installation script"""
 
 from __future__ import unicode_literals
+from __future__ import print_function
 from os import path
 import sys
 import codecs
@@ -39,4 +40,48 @@ def pyvenvwrapper_disable():
         bashrc.writelines(bashrc_lines)
     finally:
         bashrc.close()
+    return 0
+
+def show_info():
+    info = """
+==================================
+       pyvenvwrapper 0.1.0
+==================================
+Copyright (c) 2016 Nikita Solovyev
+
+See full documentation at http://pyvenvwrapper.readthedocs.org/en/latest/.
+
+To enable pyvenvwrapper for current user run 'pyvenvwrapper_enable' command,
+and restart your shell or run 'source ~/.bashrc'.
+
+You can redefine default setting in the end of your '.bashrc' file, see 
+README.RST or the docs for settings' description.
+
+pyvenvwrapper includes the following commands:
+
+ mkvenv - creates virtual environment and optionally related project folder;
+
+ workon - activates existing virtual environment and optionally changes current
+          working directory to related project folder;
+
+ deact - deactivates currently active virtual environment and optionally changes
+         current working directory back to the one used before this virtual
+         environment activation;
+
+ lsvenv - prints existing virtual environments' names, or if used with virtual
+          environment name as argument prints packages installed in it;
+
+ cdvenv - changes current working directory to specified virtual environments
+          directory, or related project directory depending on provided options;
+
+ cpvenv - copies existing virtual environment with new name and optionally
+          related project folder;
+
+ rmvenv - deletes existing virtual environment and optionally related project
+          folder.
+
+Use '[command] -h' or '[command] --help' to see usage and possible options
+for each command (after enabling pyvenvwrapper for current user).
+"""
+    print(info)
     return 0

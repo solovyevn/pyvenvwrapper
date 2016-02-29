@@ -20,5 +20,3 @@ Contents
    command_reference
    hooks
 
-* :ref:`search`
-

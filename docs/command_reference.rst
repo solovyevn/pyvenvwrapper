@@ -74,9 +74,9 @@ Combined options are not supported, i.e. instead of '-aj' use '-a -j'.
 ------
 workon
 ------
-*workon command is a wrapper for VIRTUAL_ENV/bin/activate*
-
 Usage: workon [-n] VENV_NAME
+
+*workon command is a wrapper for VIRTUAL_ENV/bin/activate*
 
 workon command activates existing virtual environment with the name of VENV_NAME from directory specified by PYVENVWRAPPER_ENV_DIR, and changes current working directory to corresponding project directory if PYVENVWRAPPER_PROJ_DIR is specified and PYVENVWRAPPER_CD_ON_WORKON is set to "true".
 
@@ -86,9 +86,9 @@ workon command activates existing virtual environment with the name of VENV_NAME
 -----
 deact
 -----
-*deact command is a wrapper for deactivate*
-
 Usage: deact
+
+*deact command is a wrapper for deactivate*
 
 deact command deactivates active virtual environment, and changes current working directory back to its value at the time of virtual environment activation if PYVENVWRAPPER_CD_ON_DEACT is set to "true".
 

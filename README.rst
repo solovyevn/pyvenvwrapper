@@ -1,6 +1,7 @@
 =============
 pyvenvwrapper
 =============
+
 pyvenvwrapper_ is a small and lightweight set of Bash script functions, that enhance the use of Python pyvenv_ tool.
 This functions allow to create and manipulate virtual environments and corresponding projet folders in convenient way using only their names. Additional feature is automatic activation/deactivation of virtual environment when changing current working directory in the shell. Since pyvenv_ and virtualenv_ use similar technics for virtual environments, pyvenvwrapper can be used for both, though main aim is pyvenv.
 
@@ -37,7 +38,7 @@ To install **pyvenvwrapper**:
 
 4. Run '*pyvenvwrapper*' to see available commands and start using **pyvenvwrapper** or see `Settings`_ to customize its behavior first.
 
-See additional details on installation in the documentation.
+See additional details on installation in the `documentation`_.
 
 --------
 Commands
@@ -101,3 +102,4 @@ The above copyright notice and this permission notice shall be included in all c
 .. _`GitHub Issues`: https://github.com/solovyevn/pyvenvwrapper/issues
 .. _pyvenvwrapper: https://github.com/solovyevn/pyvenvwrapper
 .. _`Full pyvenvwrapper documentation`: http://pyvenvwrapper.readthedocs.org/en/latest/
+.. _`documentation`: http://pyvenvwrapper.readthedocs.org/en/latest/

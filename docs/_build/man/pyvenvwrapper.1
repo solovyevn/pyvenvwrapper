@@ -1,0 +1,458 @@
+.\" Man page generated from reStructuredText.
+.
+.TH "PYVENVWRAPPER" "1" "February 29, 2016" "0.1.0" "pyvenvwrapper"
+.SH NAME
+pyvenvwrapper \- pyvenvwrapper Documentation
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.SH CONTENTS
+.SS Introduction
+.sp
+\fI\%pyvenvwrapper\fP is a small and lightweight set of Bash script functions, that enhance the use of Python \fI\%pyvenv\fP tool.
+This functions allow to create and manipulate virtual environments and corresponding projet folders in convenient way using only their names. Additional feature is automatic activation/deactivation of virtual environment when changing current working directory in the shell. Since \fI\%pyvenv\fP and \fI\%virtualenv\fP use similar technics for virtual environments, pyvenvwrapper can be used for both, though main aim is pyvenv.
+.sp
+\fBpyvenvwrapper\fP can be used to manage virtual environments and corresponding project folders or only virtual environments. In former case it assumes that the same name is used for virtual environment folder and the project folder which uses this virtual environment. The directories containing this folders are configured using special variables.
+.sp
+The idea to create pyvenvwrapper is inspired by using \fI\%virtualenvwrapper\fP, which at that moment didn\(aqt have support for pyvenv virtual environment management. \fIpyvenvwrapper code is in no way related to virtualenvwrapper code.\fP
+
+.sp
+.ce
+----
+
+.ce 0
+.sp
+.SS Compatibility
+.sp
+pyvenvwrapper functions are written and tested for Bash shell, however they might work with other Bash\-like shells.
+pyvenvwrapper is pure shell script with calls to common system tools, so it doesn\(aqt care much on what Python version is used, therefore it should work with any Python 2 or Python 3 version. Some features will require \(aq\fIpip\fP\(aq.
+pyvenvwrapper originally was intended to be used with \(aq\fIpyvenv\fP\(aq tool, but it supports \(aq\fIvirtualenv\fP\(aq tool too.
+.SS Support
+.sp
+Any questions or issues can be reported via \fI\%GitHub Issues\fP\&.
+.SS License
+.sp
+\fIThe MIT License (MIT)\fP
+.sp
+\fBCopyright (c) 2016 Nikita Solovyev\fP
+.sp
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+.sp
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+.sp
+\fBTHE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\fP
+.SS Installation
+.sp
+By defautl the following instructions show how to enable pyvenvwrapper for particular user, if you wish to enable it system wide, see \fI\%Manual installation\fP\&.
+.SS Automated installation
+.sp
+To install \fBpyvenvwrapper\fP:
+.INDENT 0.0
+.IP 1. 3
+Run \(aq\fIpip install pyvenvwrapper\fP\(aq, this will download and install required files on your machine.
+.IP 2. 3
+Run \(aq\fIpyvenvwrapper_enable\fP\(aq, this will enable pyvenvwrapper for current user by adding the following lines to user\(aqs \fI\&.bashrc\fP file:
+.INDENT 3.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+source [path_to_pyvenvwrapper]/pyvenvwrapper_settings
+source [path_to_pyvenvwrapper]/pyvenvwrapper
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+There\(aqs also \(aq\fIpyvenvwrapper_disable\fP\(aq command, which disables pyvenvwrapper for current user by removing those lines.
+.IP 3. 3
+Reboot your shell or run \(aq\fIsource ~/.bashrc\fP\(aq.
+.IP 4. 3
+Run \(aq\fIpyvenvwrapper\fP\(aq to see available commands and start using \fBpyvenvwrapper\fP or see \fBsettings\fP to customize its behavior first.
+.UNINDENT
+.SS Manual installation
+.sp
+To install \fBpyvenvwrapper\fP manually:
+.INDENT 0.0
+.IP 1. 3
+Run \(aq\fIpip install pyvenvwrapper\fP\(aq, this will download and install required files on your machine.
+.IP 2. 3
+Find where \fIpyvenvwrapper\fP package is installed. Usually somewhere in \fIsite\-packages\fP or \fIdist\-packages\fP, i.e. \fI/usr/lib/python3/site\-packages/\fP, \fI/usr/local/lib/python2.7/site\-packages/\fP\&.
+.IP 3. 3
+Open current user\(aqs \fI\&.bashrc\fP file in text editor, i.e. \(aq\fIvim ~/.bashrc\fP\(aq, and add the following lines to the end of the file, substituting \fI[path_to_pyvenvwrapper_package]\fP with actual path from step 2:
+.INDENT 3.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+source [path_to_pyvenvwrapper_package]/pyvenvwrapper_settings
+source [path_to_pyvenvwrapper_package]/pyvenvwrapper
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+If you wish to enable pyvenvwrapper system wide, then consider adding the lines above to the end of  \fI/etc/bash.bashrc\fP file, or adding symlinks for specified files to \fI/etc/profile.d/\fP directory.
+.IP 4. 3
+Reboot your shell or run \(aq\fIsource ~/.bashrc\fP\(aq.
+.IP 5. 3
+Run \(aq\fIpyvenvwrapper\fP\(aq to see available commands and start using \fBpyvenvwrapper\fP or see \fBsettings\fP to customize its behavior first.
+.UNINDENT
+.SS Settings
+.sp
+The following settings are defined in \fIpyvenvwrapper_settings\fP file in \fIpyvenvwrapper\fP package directory, which is sourced in user\(aqs \fI\&.bashrc\fP\&. The settings have sane defaults, but can be redefined directly in \fIpyvenvwrapper_settings\fP or in the end of user\(aqs \fI\&.bashrc\fP file. For changes to take effect the shell has to be rebooted or user\(aqs \fI\&.bachrc\fP has to be sourced by running \(aq\fIsource ~/.bashrc\fP\(aq.
+.sp
+\fBPYVENVWRAPPER_ENV_DIR\fP (\fI=~/.virtualenvs\fP)    Directory to keep virtual environments. No symlinks allowed. \fBThe only setting that must be defined in order to make pyvenvwrapper work.\fP
+.sp
+\fBPYVENVWRAPPER_PROJ_DIR\fP (\fI=~/projects\fP)    Directory to keep project folders. No symlinks allowed. If this setting is undefined, then pyvenvwrapper will silently not perform any actions, that assume existence of project folders related to virtual environments. Therefore not defining this option makes pyvenvwrapper work only with virtual environments. However if any command is called with explicit option related to project folder when this option is undefined, the command will be aborted with error.
+.sp
+\fBPYVENVWRAPPER_CD_ON_WORKON\fP (\fI=true\fP)    Enables/Disables directory change to corresponding project directory after virtual environment activation with workon command. Possible values: true/false. Requires \fIPYVENVWRAPPER_PROJ_DIR\fP to be set in order to work.
+.sp
+\fBPYVENVWRAPPER_CD_ON_DEACT\fP (\fI=true\fP)    Enables/Disables directory change to the one used at the time of workon execution after virtual environment deactivation with deact call. Possible values: true/false.
+.sp
+\fBPYVENVWRAPPER_ACTIVATE_ON_CD\fP (\fI=true\fP)    Enables/Disables redefinition of \fIcd\fP, \fIpopd\fP, \fIpushd\fP commands in oreder to activate virtual environment if directory changed to one of virtual environments\(aq or corresponding projects\(aq directory, otherwise do nothing or deactivate active virtual environment. Possible values: true/false. Requires shell reboot after changing or sourcing user\(aqs \fI\&.bashrc\fP\&.
+.sp
+Note on \fIPYVENVWRAPPER_ACTIVATE_ON_CD\fP: redefinition of commands is intended to be transparent, so argumetns of original built\-in functions are not affected in any way, return value are always that of wrapped built\-in and no additional output related to added behavior is introduced.
+.SS Command reference
+.sp
+Usage and possible options for each command can be displayed in the shell by calling a command with \fI\-h\fP or \fI\-\-help\fP option.
+.sp
+All commands support auto\-completion of virtual environment names.
+.sp
+All commands return:
+.INDENT 0.0
+.IP \(bu 2
+\(aq\fI0\fP\(aq exit code on successful execution;
+.IP \(bu 2
+\(aq\fI1\fP\(aq exit code when an error occurres;
+.IP \(bu 2
+\(aq\fI2\fP\(aq exit code on invocation syntax errors.
+.UNINDENT
+.SS mkvenv
+.sp
+\fImkvenv command is a wrapper for pyvenv/virtualenv and pip install\fP
+.sp
+Usage: mkvevn [OPTIONS] VENV_NAME
+.sp
+mkvenv command creates new virtual environment with the name of VENV_NAME in directory specified by PYVENVWRAPPER_ENV_DIR and new project directory with the same name in directoy specified by PYVENVWRAPPER_PROJ_DIR, if this variable is set. Additional options, that modify this command\(aqs behavior are described below.
+.sp
+Mandatory arguments to long options are mandatory for short options too.
+Combined options are not supported, i.e. instead of \(aq\-aj\(aq use \(aq\-a \-j\(aq.
+.INDENT 0.0
+.INDENT 3.5
+.INDENT 0.0
+.TP
+.BI \-o\fP,\fB  \-\-options \ <options>
+Options to provide to underlying tool
+for virtual environment creation.
+See additional information below.
+.TP
+.BI \-i\fP,\fB  \-\-install \ <requirements>
+Install packages listed in requirements
+using pip after virtual environment is
+created. <requirements> should be quoted
+string in "pip install" requirement
+specifier format. mkvenv will
+automatically try to install pip if it
+isn\(aqt already available.
+.TP
+.BI \-r\fP,\fB  \-\-requirements \ <file>
+Install packages listed in requirements
+file using pip after virtual environment
+is created. <file> should be path
+pointing to a file containing
+requirement specifications in "pip
+install \-r" requirements file format.
+mkvenv will automatically try to install
+pip if it isn\(aqt already available.
+.TP
+.BI \-u\fP,\fB  \-\-util \ <util name>
+Specify the name of utility to use for
+virtual environment creation. By defaul t
+mkvenv tries to use "pyvenv" first, if
+it\(aqs not available mkvenv tries to use
+"virtualenv".
+.TP
+.B \-p\fP,\fB  \-\-pip
+Install pip after virtual environment is
+created.
+.TP
+.BI \-t\fP,\fB  \-\-template \ <template dir path>
+Copy files and directories from template
+directory to newly created project
+directory. Precludes use of \-n option.
+.TP
+.B \-n\fP,\fB  \-\-no\-project
+Don\(aqt create project directory.
+Precludes use of \-t, \-j options.
+.TP
+.B \-a\fP,\fB  \-\-activate
+Activate virtual environment after it is
+created.
+.TP
+.B \-e\fP,\fB  \-\-env
+Change current directory to virtual
+environment directory after it is
+created. Precludes use of \-j option.
+.TP
+.B \-j\fP,\fB  \-\-project
+Change current directory to project
+directory after it is created.
+Precludes use of \-n, \-e options.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.SS workon
+.sp
+Usage: workon [\-n] VENV_NAME
+.sp
+\fIworkon command is a wrapper for VIRTUAL_ENV/bin/activate\fP
+.sp
+workon command activates existing virtual environment with the name of VENV_NAME from directory specified by PYVENVWRAPPER_ENV_DIR, and changes current working directory to corresponding project directory if PYVENVWRAPPER_PROJ_DIR is specified and PYVENVWRAPPER_CD_ON_WORKON is set to "true".
+.INDENT 0.0
+.INDENT 3.5
+.INDENT 0.0
+.TP
+.B \-n\fP,\fB  \-\-no\-cd
+Don\(aqt change current working directory to corresponding project
+directory after virtual environment activation.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.SS deact
+.sp
+Usage: deact
+.sp
+\fIdeact command is a wrapper for deactivate\fP
+.sp
+deact command deactivates active virtual environment, and changes current working directory back to its value at the time of virtual environment activation if PYVENVWRAPPER_CD_ON_DEACT is set to "true".
+.SS lsvenv
+.sp
+Usage: lsvevn [OPTIONS] [VENV_NAME]
+.sp
+lsvenv command list existing virtual environments in the directory specified by PYVENVWRAPPER_ENV_DIR. If used with existing virtual environment name as optional argument VENV_NAME, then lsvenv lists packages installed in this virtual environment in requirements format (alias to "pip freeze"). Additional options, that modify this command\(aqs behavior are described below.
+.sp
+Combined options are not supported, i.e. instead of \(aq\-se\(aq use \(aq\-s \-e\(aq.
+.INDENT 0.0
+.INDENT 3.5
+.INDENT 0.0
+.TP
+.B \-l\fP,\fB  \-\-local
+If virtual environment has global access, do not list
+globally\-installed packages. Has no meaning if VENV_NAME
+is not provided.
+.TP
+.B \-s\fP,\fB  \-\-simple
+Use simple output format instead of requirements format
+(alias to "pip list"). Has no meaning if VENV_NAME
+is not provided.
+.TP
+.B \-e\fP,\fB  \-\-extended
+Show additional information.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.SS cdvenv
+.sp
+Usage: cdvenv [OPTIONS] VENV_NAME
+.sp
+cdvenv command changes current working directory to directory of virtual environment specified by VENV_NAME argument. Additional options, that modify this command\(aqs behavior are described below.
+.INDENT 0.0
+.INDENT 3.5
+.INDENT 0.0
+.TP
+.B \-s\fP,\fB  \-\-site
+Change current working directory to virtual environment\(aqs
+site\-packages directory instead.
+Precludes use of \-p option.
+.TP
+.B \-p\fP,\fB  \-\-project
+Change current working directory to virtual environment\(aqs
+related project directory instead.
+Precludes use of \-s option.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.SS cpvenv
+.sp
+Usage: cpvenv [OPTIONS] SRC_VENV_NAME DST_VENV_NAME
+.sp
+cpvenv command creates a copy of virtual environment. It copies all contents of SRC_VENV_NAME virtual environment directory to a new directory for virtual environment with the name specified by DST_VENV_NAME. If PYVENVWRAPPER_PROJ_DIR is set, cpvenv also creates a new project directory related to new virtual environment with DST_VENV_NAME. cpvenv will not overwrite any existing data in DST_VENV_NAME virtual environment directory (and related project directory) if it already exists and is not empty, unless \-f option is provided. Additional options, that modify this command\(aqs behavior are described below.
+.sp
+\fBNote\fP: Depending on the name of source virtual environment destination virtual environment might be broken after copy. This is due to renaming in destination virtual environment which has to take place because of how virtual environments work. Source virtual environment will not be affected in any way. This should normally not happen if the name is unique and not anything more generic like simple "if", "var", etc..
+.sp
+Combined options are not supported, i.e. instead of \(aq\-fp\(aq use \(aq\-f \-p\(aq.
+.INDENT 0.0
+.INDENT 3.5
+.INDENT 0.0
+.TP
+.B \-f\fP,\fB  \-\-force
+Overwrite data in DST_VENV_NAME virtual environment
+directory (and related project directory) if it already
+exists and is not empty.
+.TP
+.B \-p\fP,\fB  \-\-project
+Copy contents of project directory related to
+SRC_VENV_NAME virtual environment to new project directory
+related to DST_VENV_NAME virtual environment.
+Precludes use of \-n option.
+.TP
+.B \-n\fP,\fB  \-\-no\-project
+Don\(aqt create project directory.
+Precludes use of \-p option.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.SS rmvenv
+.sp
+Usage: rmvenv [OPTIONS] VENV_NAME
+.sp
+rmvenv command removes virtual environment directory with the name specified by VENV_NAME. Additional options, that modify this command\(aqs behavior are described below.
+.sp
+Combined options are not supported, i.e. instead of \(aq\-fp\(aq use \(aq\-f \-p\(aq.
+.INDENT 0.0
+.INDENT 3.5
+\fBBe cautious when using options!\fP
+.INDENT 0.0
+.TP
+.B \-f\fP,\fB  \-\-force
+Don\(aqt prompt for any confirmations.
+.TP
+.B \-p\fP,\fB  \-\-project
+Also remove related project directory with all contents.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.SS Hooks
+.sp
+If there\(aqs a need for added behavior on any command execution, it can be provided via custom scripts, that can be assigned to the hook variables. The script provided will be sourced, which means that its commands will be called in the same process and any changes, ie. directory changes, global variables, will be kept in current shell session after sourcing. There\(aqre hooks that will be sourced before and after each command.
+.sp
+Custom hook script will be sourced:
+.INDENT 0.0
+.INDENT 3.5
+.INDENT 0.0
+.IP \(bu 2
+for \fBPRE\fP command \- before any actions are taken, but after command line options and arguments are parsed and verified;
+.IP \(bu 2
+for \fBPOST\fP command \- after all actions are taken, as last instructions, but only if no errors occured.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+For convenience every script defined for hook variables will get "\fIvenv=VENV_NAME\fP" as first argument and all the arguments from command line as subsequent arguments.
+Special cases are:
+.INDENT 0.0
+.INDENT 3.5
+.INDENT 0.0
+.IP \(bu 2
+\fBLSVENV\fP might be called without \fIVENV_NAME\fP, in this case "\fIvenv=\fP" will be provided;
+.IP \(bu 2
+\fBCPVENV\fP will get "\fIvenv=SRC_VENV\fP" and "\fIdst=DST_VENV\fP" as first and second arguments and all the arguments from command line as subsequent arguments;
+.IP \(bu 2
+\fBDEACT\fP will not get any arguments, as it doesn\(aqt use any. (Active virtual evironment path is kept in \fIVIRTUAL_ENV\fP environment variable, so it can be used.)
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+\fIVENV_NAME\fP, \fISRC_VENV\fP, \fIDST_VENV\fP will be the actual virtual environments names provided as argument to corresponding command.
+.sp
+Custom script should return \(aq\fI0\fP\(aq in the end if no errors occured. If the sourced script will return any return code other than \(aq\fI0\fP\(aq, then the command will be aborted with error.
+.sp
+Provide a path to a custom script file as a value for the following variables directly in \fIpyvenvwrapper_settings\fP in \fIpyvenvwrapper\fP package or in the end of user\(aqs \fI\&.bashrc\fP file to define hooks (i.e. \fIPYVENVWRAPPER_POST_MKVENV=~/custom_sript\fP). Fot changes to take effect you\(aqll have to reboot the shell or run \(aq\fIsource ~/.bashrc\fP\(aq.
+.INDENT 0.0
+.INDENT 3.5
+.INDENT 0.0
+.IP \(bu 2
+.INDENT 2.0
+.TP
+.B Sourced before and after \fImkvenv\fP:
+\fBPYVENVWRAPPER_PRE_MKVENV\fP
+\fBPYVENVWRAPPER_POST_MKVENV\fP
+.UNINDENT
+.IP \(bu 2
+.INDENT 2.0
+.TP
+.B Sourced before and after \fIlsvenv\fP:
+\fBPYVENVWRAPPER_PRE_LSVENV\fP
+\fBPYVENVWRAPPER_POST_LSVENV\fP
+.UNINDENT
+.IP \(bu 2
+.INDENT 2.0
+.TP
+.B Sourced before and after \fIcdvenv\fP:
+\fBPYVENVWRAPPER_PRE_CDVENV\fP
+\fBPYVENVWRAPPER_POST_CDVENV\fP
+.UNINDENT
+.IP \(bu 2
+.INDENT 2.0
+.TP
+.B Sourced before and after \fIrmvenv\fP:
+\fBPYVENVWRAPPER_PRE_RMVENV\fP
+\fBPYVENVWRAPPER_POST_RMVENV\fP
+.UNINDENT
+.IP \(bu 2
+.INDENT 2.0
+.TP
+.B Sourced before and after \fIcpvenv\fP:
+\fBPYVENVWRAPPER_PRE_CPVENV\fP
+\fBPYVENVWRAPPER_POST_CPVENV\fP
+.UNINDENT
+.IP \(bu 2
+.INDENT 2.0
+.TP
+.B Sourced before and after \fIworkon\fP:
+\fBPYVENVWRAPPER_PRE_WORKON\fP
+\fBPYVENVWRAPPER_POST_WORKON\fP
+.UNINDENT
+.IP \(bu 2
+.INDENT 2.0
+.TP
+.B Sourced before and after \fIdeact\fP:
+\fBPYVENVWRAPPER_PRE_DEACT\fP
+\fBPYVENVWRAPPER_POST_DEACT\fP
+.UNINDENT
+.IP \(bu 2
+.INDENT 2.0
+.TP
+.B Sourced before and after virtual environment activation on directory change if \fIPYVENVWRAPPER_ACT_ON_CD\fP setting is enabled:
+\fBPYVENVWRAPPER_PRE_ACT_ON_CD\fP
+\fBPYVENVWRAPPER_POST_ACT_ON_CD\fP
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B Note for \fIPYVENVWRAPPER_PRE_ACT_ON_CD\fP and \fIPYVENVWRAPPER_POST_ACT_ON_CD\fP:
+If \fIcd\fP to directory not related in any way to any virtual environment, hooks are not called. If \fIcd\fP to directory related to virtual environment, even if there\(aqs any already active virtual environment, the \fIPRE\fP hook will be source before currently active environment deactivation. For these hook scripts any output to console will be suppresed.
+.UNINDENT
+.SH AUTHOR
+Nikita Solovyev
+.SH COPYRIGHT
+2016, Nikita Solovyev
+.\" Generated by docutils manpage writer.
+.

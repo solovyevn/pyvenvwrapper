@@ -13,16 +13,18 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as readme:
 
 setup(
     name='pyvenvwrapper',
-    version='0.1.0b1',
+    version='0.1.0',
     description='pyvenvwrapper is a small and lightweight set of Bash script functions, that enhance the use of Python pyvenv tool.',
     long_description=long_description,
-    url='https://github.com/solovyevn/pyvenvwrapper',
-    download_url='https://github.com/solovyevn/pyvenvwrapper',
+    url='http://github.com/solovyevn/pyvenvwrapper',
+    download_url='http://pypi.python.org/pypi/pyvenvwrapper',
+    project_url=['Bug Tracker, http://github.com/solovyevn/pyvenvwrapper/issues',
+                 'Documentation, http://pyvenvwrapper.readthedocs.org/en/latest/'],
     author='Nikita Solovyev',
     author_email='solovyev.nik@gmail.com',
     license='MIT',
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
@@ -59,7 +61,9 @@ setup(
         'pyvenvwrapper': ['pyvenvwrapper', 'pyvenvwrapper_settings'],
     },
     entry_points={
-        'console_scripts': ['pyvenvwrapper_enable = pyvenvwrapper.install:pyvenvwrapper_enable', 'pyvenvwrapper_disable = pyvenvwrapper.install:pyvenvwrapper_disable']
+        'console_scripts': ['pyvenvwrapper = pyvenvwrapper.install:show_info', 
+                            'pyvenvwrapper_enable = pyvenvwrapper.install:pyvenvwrapper_enable', 
+                            'pyvenvwrapper_disable = pyvenvwrapper.install:pyvenvwrapper_disable']
     },
     include_package_data=True,
     zip_safe=False
