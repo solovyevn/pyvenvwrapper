@@ -16,7 +16,7 @@ mkvenv
 ------
 *mkvenv command is a wrapper for pyvenv/virtualenv and pip install*
 
-Usage: mkvevn [OPTIONS] VENV_NAME
+Usage: mkvenv [OPTIONS] VENV_NAME
 
 mkvenv command creates new virtual environment with the name of VENV_NAME in directory specified by PYVENVWRAPPER_ENV_DIR and new project directory with the same name in directoy specified by PYVENVWRAPPER_PROJ_DIR, if this variable is set. Additional options, that modify this command's behavior are described below.
 
