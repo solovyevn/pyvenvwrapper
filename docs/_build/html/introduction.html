@@ -8,9 +8,11 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Introduction &mdash; pyvenvwrapper 0.1.0 documentation</title>
+  <title>Introduction &mdash; pyvenvwrapper 1.0.0 documentation</title>
   
 
+  
+  
   
   
 
@@ -22,25 +24,21 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-    <link rel="top" title="pyvenvwrapper 0.1.0 documentation" href="index.html"/>
-        <link rel="next" title="Installation" href="installation.html"/>
-        <link rel="prev" title="pyvenvwrapper documentation" href="index.html"/> 
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="installation.html" />
+    <link rel="prev" title="pyvenvwrapper documentation" href="index.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -60,7 +58,7 @@
             
             
               <div class="version">
-                0.1.0
+                1.0.0
               </div>
             
           
@@ -81,10 +79,18 @@
           
             
             
-                <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="">Introduction</a><ul>
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#compatibility">Compatibility</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#support">Support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#changelog">Changelog</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">1.0.0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">0.1.0</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#license">License</a></li>
 </ul>
 </li>
@@ -103,34 +109,54 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="index.html">pyvenvwrapper</a>
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pyvenvwrapper</a>
+        
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
+
+
+
+
+
+
+
+
+
+
 
 
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="index.html">Docs</a> &raquo;</li>
-      
-    <li>Introduction</li>
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Introduction</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-            <a href="_sources/introduction.txt" rel="nofollow"> View page source</a>
+            
+            <a href="_sources/introduction.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -138,42 +164,63 @@
             
   <div class="section" id="introduction">
 <h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
-<p><a class="reference external" href="https://github.com/solovyevn/pyvenvwrapper">pyvenvwrapper</a> is a small and lightweight set of Bash script functions, that enhance the use of Python <a class="reference external" href="https://docs.python.org/3/library/venv.html">pyvenv</a> tool.
-This functions allow to create and manipulate virtual environments and corresponding projet folders in convenient way using only their names. Additional feature is automatic activation/deactivation of virtual environment when changing current working directory in the shell. Since <a class="reference external" href="https://docs.python.org/3/library/venv.html">pyvenv</a> and <a class="reference external" href="https://pypi.python.org/pypi/virtualenv">virtualenv</a> use similar technics for virtual environments, pyvenvwrapper can be used for both, though main aim is pyvenv.</p>
+<p><a class="reference external" href="https://github.com/solovyevn/pyvenvwrapper">pyvenvwrapper</a> is a small and lightweight set of Bash script functions, that enhance the use of Python standard library <a class="reference external" href="https://docs.python.org/3/library/venv.html">venv</a> module for management of virtual environments.
+Between Python 3.2 and Python 3.6 <a class="reference external" href="https://docs.python.org/3/library/venv.html">venv</a> module was wrapped in a <a class="reference external" href="https://docs.python.org/3.2/library/venv.html">pyvenv</a> script, that is now officially deprecated in favor of direct usage of <a class="reference external" href="https://docs.python.org/3/library/venv.html">venv</a> module.
+<a class="reference external" href="https://github.com/solovyevn/pyvenvwrapper">pyvenvwrapper</a> functions allow to create and manipulate virtual environments and corresponding projet folders in a convenient way using only their names.
+Additional feature is automatic activation/deactivation of virtual environment when changing current working directory in the shell.
+Since <a class="reference external" href="https://docs.python.org/3/library/venv.html">venv</a> and <a class="reference external" href="https://pypi.python.org/pypi/virtualenv">virtualenv</a> use similar technics for virtual environments, pyvenvwrapper can be used for both, though main aim is <a class="reference external" href="https://docs.python.org/3/library/venv.html">venv</a>.</p>
 <p><strong>pyvenvwrapper</strong> can be used to manage virtual environments and corresponding project folders or only virtual environments. In former case it assumes that the same name is used for virtual environment folder and the project folder which uses this virtual environment. The directories containing this folders are configured using special variables.</p>
-<p>The idea to create pyvenvwrapper is inspired by using <a class="reference external" href="https://pypi.python.org/pypi/virtualenvwrapper/">virtualenvwrapper</a>, which at that moment didn&#8217;t have support for pyvenv virtual environment management. <em>pyvenvwrapper code is in no way related to virtualenvwrapper code.</em></p>
+<p>The idea to create pyvenvwrapper is inspired by using <a class="reference external" href="https://pypi.python.org/pypi/virtualenvwrapper/">virtualenvwrapper</a>, which at that moment didn’t have support for <a class="reference external" href="https://docs.python.org/3.2/library/venv.html">pyvenv</a> and <a class="reference external" href="https://docs.python.org/3/library/venv.html">venv</a> virtual environment management. <em>pyvenvwrapper code is in no way related to virtualenvwrapper code.</em></p>
 <hr class="docutils" />
 <div class="section" id="compatibility">
 <h2>Compatibility<a class="headerlink" href="#compatibility" title="Permalink to this headline">¶</a></h2>
 <p>pyvenvwrapper functions are written and tested for Bash shell, however they might work with other Bash-like shells.
-pyvenvwrapper is pure shell script with calls to common system tools, so it doesn&#8217;t care much on what Python version is used, therefore it should work with any Python 2 or Python 3 version. Some features will require &#8216;<em>pip</em>&#8216;.
-pyvenvwrapper originally was intended to be used with &#8216;<em>pyvenv</em>&#8216; tool, but it supports &#8216;<em>virtualenv</em>&#8216; tool too.</p>
+pyvenvwrapper is pure shell script with calls to common system tools, so it doesn’t care much on what Python version is used, therefore it should work with any Python 2 or Python 3 version. Some features will require ‘<em>pip</em>’.
+pyvenvwrapper originally was intended to be used with ‘<em>pyvenv</em>’ tool (‘<em>venv</em>’ module in Python standard library), but it supports ‘<em>virtualenv</em>’ tool too.</p>
 </div>
 <div class="section" id="support">
 <h2>Support<a class="headerlink" href="#support" title="Permalink to this headline">¶</a></h2>
 <p>Any questions or issues can be reported via <a class="reference external" href="https://github.com/solovyevn/pyvenvwrapper/issues">GitHub Issues</a>.</p>
 </div>
+<div class="section" id="changelog">
+<h2>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id1">
+<h3>1.0.0<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Added support for creation of virtual environments using <a class="reference external" href="https://docs.python.org/3/library/venv.html">venv</a> module (<cite>python -m venv</cite>). It is now preferred by default with a fallback to <cite>pyvenv</cite> and <cite>virtualenv</cite>.
+Using <cite>venv</cite> directly is officially recommended for creating virtual environments since Python 3.5. <cite>pyvenv</cite> script is officially deprecated in Python 3.6.</li>
+<li>Added new option <cite>-b</cite>/<cite>–python</cite> to <cite>mkvenv</cite> command, that allows to specify which Python interpreter executable to use for new virtual environment. This option works with <cite>venv</cite> and <cite>virtualenv</cite>.</li>
+</ul>
+</div>
+<div class="section" id="id2">
+<h3>0.1.0<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Initial version with all the main features.</li>
+</ul>
+</div>
+</div>
 <div class="section" id="license">
 <h2>License<a class="headerlink" href="#license" title="Permalink to this headline">¶</a></h2>
 <p><em>The MIT License (MIT)</em></p>
 <p><strong>Copyright (c) 2016 Nikita Solovyev</strong></p>
-<p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &#8220;Software&#8221;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>
+<p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>
 <p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p>
-<p><strong>THE SOFTWARE IS PROVIDED &#8220;AS IS&#8221;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</strong></p>
+<p><strong>THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</strong></p>
 </div>
 </div>
 
 
            </div>
+           
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="installation.html" class="btn btn-neutral float-right" title="Installation" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="installation.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral" title="pyvenvwrapper documentation" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral" title="pyvenvwrapper documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -186,7 +233,7 @@ pyvenvwrapper originally was intended to be used with &#8216;<em>pyvenv</em>&#82
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -204,10 +251,12 @@ pyvenvwrapper originally was intended to be used with &#8216;<em>pyvenv</em>&#82
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.1.0',
+            VERSION:'1.0.0',
+            LANGUAGE:'en',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="_static/jquery.js"></script>
@@ -216,19 +265,13 @@ pyvenvwrapper originally was intended to be used with &#8216;<em>pyvenv</em>&#82
 
   
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

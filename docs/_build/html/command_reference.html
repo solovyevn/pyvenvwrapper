@@ -8,9 +8,11 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Command reference &mdash; pyvenvwrapper 0.1.0 documentation</title>
+  <title>Command reference &mdash; pyvenvwrapper 1.0.0 documentation</title>
   
 
+  
+  
   
   
 
@@ -22,25 +24,21 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-    <link rel="top" title="pyvenvwrapper 0.1.0 documentation" href="index.html"/>
-        <link rel="next" title="Hooks" href="hooks.html"/>
-        <link rel="prev" title="Settings" href="settings.html"/> 
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Hooks" href="hooks.html" />
+    <link rel="prev" title="Settings" href="settings.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -60,7 +58,7 @@
             
             
               <div class="version">
-                0.1.0
+                1.0.0
               </div>
             
           
@@ -81,11 +79,14 @@
           
             
             
-                <ul class="current">
+              
+            
+            
+              <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="settings.html">Settings</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">Command reference</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Command reference</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#mkvenv">mkvenv</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#workon">workon</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#deact">deact</a></li>
@@ -107,34 +108,54 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="index.html">pyvenvwrapper</a>
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pyvenvwrapper</a>
+        
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
+
+
+
+
+
+
+
+
+
+
 
 
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="index.html">Docs</a> &raquo;</li>
-      
-    <li>Command reference</li>
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Command reference</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-            <a href="_sources/command_reference.txt" rel="nofollow"> View page source</a>
+            
+            <a href="_sources/command_reference.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -142,21 +163,21 @@
             
   <div class="section" id="command-reference">
 <h1>Command reference<a class="headerlink" href="#command-reference" title="Permalink to this headline">¶</a></h1>
-<p>Usage and possible options for each command can be displayed in the shell by calling a command with <em>-h</em> or <em>&#8211;help</em> option.</p>
+<p>Usage and possible options for each command can be displayed in the shell by calling a command with <em>-h</em> or <em>–help</em> option.</p>
 <p>All commands support auto-completion of virtual environment names.</p>
 <p>All commands return:</p>
 <ul class="simple">
-<li>&#8216;<em>0</em>&#8216; exit code on successful execution;</li>
-<li>&#8216;<em>1</em>&#8216; exit code when an error occurres;</li>
-<li>&#8216;<em>2</em>&#8216; exit code on invocation syntax errors.</li>
+<li>‘<em>0</em>’ exit code on successful execution;</li>
+<li>‘<em>1</em>’ exit code when an error occurres;</li>
+<li>‘<em>2</em>’ exit code on invocation syntax errors.</li>
 </ul>
 <div class="section" id="mkvenv">
 <h2>mkvenv<a class="headerlink" href="#mkvenv" title="Permalink to this headline">¶</a></h2>
-<p><em>mkvenv command is a wrapper for pyvenv/virtualenv and pip install</em></p>
-<p>Usage: mkvevn [OPTIONS] VENV_NAME</p>
-<p>mkvenv command creates new virtual environment with the name of VENV_NAME in directory specified by PYVENVWRAPPER_ENV_DIR and new project directory with the same name in directoy specified by PYVENVWRAPPER_PROJ_DIR, if this variable is set. Additional options, that modify this command&#8217;s behavior are described below.</p>
+<p><em>mkvenv command is a wrapper for venv/pyvenv/virtualenv and pip install</em></p>
+<p>Usage: mkvenv [OPTIONS] VENV_NAME</p>
+<p>mkvenv command creates new virtual environment with the name of VENV_NAME in directory specified by PYVENVWRAPPER_ENV_DIR and new project directory with the same name in directoy specified by PYVENVWRAPPER_PROJ_DIR, if this variable is set. Additional options, that modify this command’s behavior are described below.</p>
 <p>Mandatory arguments to long options are mandatory for short options too.
-Combined options are not supported, i.e. instead of &#8216;-aj&#8217; use &#8216;-a -j&#8217;.</p>
+Combined options are not supported, i.e. instead of ‘-aj’ use ‘-a -j’.</p>
 <blockquote>
 <div><table class="docutils option-list" frame="void" rules="none">
 <col class="option" />
@@ -165,38 +186,47 @@ Combined options are not supported, i.e. instead of &#8216;-aj&#8217; use &#8216
 <tr><td class="option-group" colspan="2">
 <kbd><span class="option">-o</span>, <span class="option">--options <var>&lt;options&gt;</var></span></kbd></td>
 </tr>
-<tr><td>&nbsp;</td><td>Options to provide to underlying tool
+<tr><td>&#160;</td><td>Options to provide to underlying tool
 for virtual environment creation.
 See additional information below.</td></tr>
 <tr><td class="option-group" colspan="2">
 <kbd><span class="option">-i</span>, <span class="option">--install <var>&lt;requirements&gt;</var></span></kbd></td>
 </tr>
-<tr><td>&nbsp;</td><td>Install packages listed in requirements
+<tr><td>&#160;</td><td>Install packages listed in requirements
 using pip after virtual environment is
 created. &lt;requirements&gt; should be quoted
-string in &#8220;pip install&#8221; requirement
+string in “pip install” requirement
 specifier format. mkvenv will
 automatically try to install pip if it
-isn&#8217;t already available.</td></tr>
+isn’t already available.</td></tr>
 <tr><td class="option-group" colspan="2">
 <kbd><span class="option">-r</span>, <span class="option">--requirements <var>&lt;file&gt;</var></span></kbd></td>
 </tr>
-<tr><td>&nbsp;</td><td>Install packages listed in requirements
+<tr><td>&#160;</td><td>Install packages listed in requirements
 file using pip after virtual environment
 is created. &lt;file&gt; should be path
 pointing to a file containing
-requirement specifications in &#8220;pip
-install -r&#8221; requirements file format.
+requirement specifications in “pip
+install -r” requirements file format.
 mkvenv will automatically try to install
-pip if it isn&#8217;t already available.</td></tr>
+pip if it isn’t already available.</td></tr>
 <tr><td class="option-group" colspan="2">
 <kbd><span class="option">-u</span>, <span class="option">--util <var>&lt;util name&gt;</var></span></kbd></td>
 </tr>
-<tr><td>&nbsp;</td><td>Specify the name of utility to use for
-virtual environment creation. By defaul t
-mkvenv tries to use &#8220;pyvenv&#8221; first, if
-it&#8217;s not available mkvenv tries to use
-&#8220;virtualenv&#8221;.</td></tr>
+<tr><td>&#160;</td><td>Specify the name of utility to use for
+virtual environment creation. By default
+mkvenv tries to use “venv” first, if
+it’s not available mkvenv tries to use
+“pyvenv” and then “virtualenv”.</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-b</span>, <span class="option">--python <var>&lt;python executable&gt;</var></span></kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Use provided Python executable for new
+virtual environment. &lt;python executable&gt;
+should be a path pointing to a Python
+interpreter executable file. Works only
+with “venv” and “virtualenv”. By
+default the system’s “python” is used.</td></tr>
 <tr><td class="option-group">
 <kbd><span class="option">-p</span>, <span class="option">--pip</span></kbd></td>
 <td>Install pip after virtual environment is
@@ -204,13 +234,13 @@ created.</td></tr>
 <tr><td class="option-group" colspan="2">
 <kbd><span class="option">-t</span>, <span class="option">--template <var>&lt;template dir path&gt;</var></span></kbd></td>
 </tr>
-<tr><td>&nbsp;</td><td>Copy files and directories from template
+<tr><td>&#160;</td><td>Copy files and directories from template
 directory to newly created project
 directory. Precludes use of -n option.</td></tr>
 <tr><td class="option-group" colspan="2">
 <kbd><span class="option">-n</span>, <span class="option">--no-project</span></kbd></td>
 </tr>
-<tr><td>&nbsp;</td><td>Don&#8217;t create project directory.
+<tr><td>&#160;</td><td>Don’t create project directory.
 Precludes use of -t, -j options.</td></tr>
 <tr><td class="option-group">
 <kbd><span class="option">-a</span>, <span class="option">--activate</span></kbd></td>
@@ -234,7 +264,7 @@ Precludes use of -n, -e options.</td></tr>
 <h2>workon<a class="headerlink" href="#workon" title="Permalink to this headline">¶</a></h2>
 <p>Usage: workon [-n] VENV_NAME</p>
 <p><em>workon command is a wrapper for VIRTUAL_ENV/bin/activate</em></p>
-<p>workon command activates existing virtual environment with the name of VENV_NAME from directory specified by PYVENVWRAPPER_ENV_DIR, and changes current working directory to corresponding project directory if PYVENVWRAPPER_PROJ_DIR is specified and PYVENVWRAPPER_CD_ON_WORKON is set to &#8220;true&#8221;.</p>
+<p>workon command activates existing virtual environment with the name of VENV_NAME from directory specified by PYVENVWRAPPER_ENV_DIR, and changes current working directory to corresponding project directory if PYVENVWRAPPER_PROJ_DIR is specified and PYVENVWRAPPER_CD_ON_WORKON is set to “true”.</p>
 <blockquote>
 <div><table class="docutils option-list" frame="void" rules="none">
 <col class="option" />
@@ -242,7 +272,7 @@ Precludes use of -n, -e options.</td></tr>
 <tbody valign="top">
 <tr><td class="option-group">
 <kbd><span class="option">-n</span>, <span class="option">--no-cd</span></kbd></td>
-<td>Don&#8217;t change current working directory to corresponding project
+<td>Don’t change current working directory to corresponding project
 directory after virtual environment activation.</td></tr>
 </tbody>
 </table>
@@ -252,13 +282,13 @@ directory after virtual environment activation.</td></tr>
 <h2>deact<a class="headerlink" href="#deact" title="Permalink to this headline">¶</a></h2>
 <p>Usage: deact</p>
 <p><em>deact command is a wrapper for deactivate</em></p>
-<p>deact command deactivates active virtual environment, and changes current working directory back to its value at the time of virtual environment activation if PYVENVWRAPPER_CD_ON_DEACT is set to &#8220;true&#8221;.</p>
+<p>deact command deactivates active virtual environment, and changes current working directory back to its value at the time of virtual environment activation if PYVENVWRAPPER_CD_ON_DEACT is set to “true”.</p>
 </div>
 <div class="section" id="lsvenv">
 <h2>lsvenv<a class="headerlink" href="#lsvenv" title="Permalink to this headline">¶</a></h2>
 <p>Usage: lsvevn [OPTIONS] [VENV_NAME]</p>
-<p>lsvenv command list existing virtual environments in the directory specified by PYVENVWRAPPER_ENV_DIR. If used with existing virtual environment name as optional argument VENV_NAME, then lsvenv lists packages installed in this virtual environment in requirements format (alias to &#8220;pip freeze&#8221;). Additional options, that modify this command&#8217;s behavior are described below.</p>
-<p>Combined options are not supported, i.e. instead of &#8216;-se&#8217; use &#8216;-s -e&#8217;.</p>
+<p>lsvenv command list existing virtual environments in the directory specified by PYVENVWRAPPER_ENV_DIR. If used with existing virtual environment name as optional argument VENV_NAME, then lsvenv lists packages installed in this virtual environment in requirements format (alias to “pip freeze”). Additional options, that modify this command’s behavior are described below.</p>
+<p>Combined options are not supported, i.e. instead of ‘-se’ use ‘-s -e’.</p>
 <blockquote>
 <div><table class="docutils option-list" frame="void" rules="none">
 <col class="option" />
@@ -272,7 +302,7 @@ is not provided.</td></tr>
 <tr><td class="option-group">
 <kbd><span class="option">-s</span>, <span class="option">--simple</span></kbd></td>
 <td>Use simple output format instead of requirements format
-(alias to &#8220;pip list&#8221;). Has no meaning if VENV_NAME
+(alias to “pip list”). Has no meaning if VENV_NAME
 is not provided.</td></tr>
 <tr><td class="option-group">
 <kbd><span class="option">-e</span>, <span class="option">--extended</span></kbd></td>
@@ -284,7 +314,7 @@ is not provided.</td></tr>
 <div class="section" id="cdvenv">
 <h2>cdvenv<a class="headerlink" href="#cdvenv" title="Permalink to this headline">¶</a></h2>
 <p>Usage: cdvenv [OPTIONS] VENV_NAME</p>
-<p>cdvenv command changes current working directory to directory of virtual environment specified by VENV_NAME argument. Additional options, that modify this command&#8217;s behavior are described below.</p>
+<p>cdvenv command changes current working directory to directory of virtual environment specified by VENV_NAME argument. Additional options, that modify this command’s behavior are described below.</p>
 <blockquote>
 <div><table class="docutils option-list" frame="void" rules="none">
 <col class="option" />
@@ -292,12 +322,12 @@ is not provided.</td></tr>
 <tbody valign="top">
 <tr><td class="option-group">
 <kbd><span class="option">-s</span>, <span class="option">--site</span></kbd></td>
-<td>Change current working directory to virtual environment&#8217;s
+<td>Change current working directory to virtual environment’s
 site-packages directory instead.
 Precludes use of -p option.</td></tr>
 <tr><td class="option-group">
 <kbd><span class="option">-p</span>, <span class="option">--project</span></kbd></td>
-<td>Change current working directory to virtual environment&#8217;s
+<td>Change current working directory to virtual environment’s
 related project directory instead.
 Precludes use of -s option.</td></tr>
 </tbody>
@@ -307,9 +337,9 @@ Precludes use of -s option.</td></tr>
 <div class="section" id="cpvenv">
 <h2>cpvenv<a class="headerlink" href="#cpvenv" title="Permalink to this headline">¶</a></h2>
 <p>Usage: cpvenv [OPTIONS] SRC_VENV_NAME DST_VENV_NAME</p>
-<p>cpvenv command creates a copy of virtual environment. It copies all contents of SRC_VENV_NAME virtual environment directory to a new directory for virtual environment with the name specified by DST_VENV_NAME. If PYVENVWRAPPER_PROJ_DIR is set, cpvenv also creates a new project directory related to new virtual environment with DST_VENV_NAME. cpvenv will not overwrite any existing data in DST_VENV_NAME virtual environment directory (and related project directory) if it already exists and is not empty, unless -f option is provided. Additional options, that modify this command&#8217;s behavior are described below.</p>
-<p><strong>Note</strong>: Depending on the name of source virtual environment destination virtual environment might be broken after copy. This is due to renaming in destination virtual environment which has to take place because of how virtual environments work. Source virtual environment will not be affected in any way. This should normally not happen if the name is unique and not anything more generic like simple &#8220;if&#8221;, &#8220;var&#8221;, etc..</p>
-<p>Combined options are not supported, i.e. instead of &#8216;-fp&#8217; use &#8216;-f -p&#8217;.</p>
+<p>cpvenv command creates a copy of virtual environment. It copies all contents of SRC_VENV_NAME virtual environment directory to a new directory for virtual environment with the name specified by DST_VENV_NAME. If PYVENVWRAPPER_PROJ_DIR is set, cpvenv also creates a new project directory related to new virtual environment with DST_VENV_NAME. cpvenv will not overwrite any existing data in DST_VENV_NAME virtual environment directory (and related project directory) if it already exists and is not empty, unless -f option is provided. Additional options, that modify this command’s behavior are described below.</p>
+<p><strong>Note</strong>: Depending on the name of source virtual environment destination virtual environment might be broken after copy. This is due to renaming in destination virtual environment which has to take place because of how virtual environments work. Source virtual environment will not be affected in any way. This should normally not happen if the name is unique and not anything more generic like simple “if”, “var”, etc..</p>
+<p>Combined options are not supported, i.e. instead of ‘-fp’ use ‘-f -p’.</p>
 <blockquote>
 <div><table class="docutils option-list" frame="void" rules="none">
 <col class="option" />
@@ -329,7 +359,7 @@ Precludes use of -n option.</td></tr>
 <tr><td class="option-group" colspan="2">
 <kbd><span class="option">-n</span>, <span class="option">--no-project</span></kbd></td>
 </tr>
-<tr><td>&nbsp;</td><td>Don&#8217;t create project directory.
+<tr><td>&#160;</td><td>Don’t create project directory.
 Precludes use of -p option.</td></tr>
 </tbody>
 </table>
@@ -338,8 +368,8 @@ Precludes use of -p option.</td></tr>
 <div class="section" id="rmvenv">
 <h2>rmvenv<a class="headerlink" href="#rmvenv" title="Permalink to this headline">¶</a></h2>
 <p>Usage: rmvenv [OPTIONS] VENV_NAME</p>
-<p>rmvenv command removes virtual environment directory with the name specified by VENV_NAME. Additional options, that modify this command&#8217;s behavior are described below.</p>
-<p>Combined options are not supported, i.e. instead of &#8216;-fp&#8217; use &#8216;-f -p&#8217;.</p>
+<p>rmvenv command removes virtual environment directory with the name specified by VENV_NAME. Additional options, that modify this command’s behavior are described below.</p>
+<p>Combined options are not supported, i.e. instead of ‘-fp’ use ‘-f -p’.</p>
 <blockquote>
 <div><p><strong>Be cautious when using options!</strong></p>
 <table class="docutils option-list" frame="void" rules="none">
@@ -348,7 +378,7 @@ Precludes use of -p option.</td></tr>
 <tbody valign="top">
 <tr><td class="option-group">
 <kbd><span class="option">-f</span>, <span class="option">--force</span></kbd></td>
-<td>Don&#8217;t prompt for any confirmations.</td></tr>
+<td>Don’t prompt for any confirmations.</td></tr>
 <tr><td class="option-group">
 <kbd><span class="option">-p</span>, <span class="option">--project</span></kbd></td>
 <td>Also remove related project directory with all contents.</td></tr>
@@ -360,15 +390,16 @@ Precludes use of -p option.</td></tr>
 
 
            </div>
+           
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="hooks.html" class="btn btn-neutral float-right" title="Hooks" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="hooks.html" class="btn btn-neutral float-right" title="Hooks" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="settings.html" class="btn btn-neutral" title="Settings" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="settings.html" class="btn btn-neutral" title="Settings" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -381,7 +412,7 @@ Precludes use of -p option.</td></tr>
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -399,10 +430,12 @@ Precludes use of -p option.</td></tr>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.1.0',
+            VERSION:'1.0.0',
+            LANGUAGE:'en',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="_static/jquery.js"></script>
@@ -411,19 +444,13 @@ Precludes use of -p option.</td></tr>
 
   
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

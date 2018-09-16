@@ -8,9 +8,11 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Hooks &mdash; pyvenvwrapper 0.1.0 documentation</title>
+  <title>Hooks &mdash; pyvenvwrapper 1.0.0 documentation</title>
   
 
+  
+  
   
   
 
@@ -22,24 +24,20 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-    <link rel="top" title="pyvenvwrapper 0.1.0 documentation" href="index.html"/>
-        <link rel="prev" title="Command reference" href="command_reference.html"/> 
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Command reference" href="command_reference.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -59,7 +57,7 @@
             
             
               <div class="version">
-                0.1.0
+                1.0.0
               </div>
             
           
@@ -80,12 +78,15 @@
           
             
             
-                <ul class="current">
+              
+            
+            
+              <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="settings.html">Settings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="command_reference.html">Command reference</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">Hooks</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Hooks</a></li>
 </ul>
 
             
@@ -97,34 +98,54 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="index.html">pyvenvwrapper</a>
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pyvenvwrapper</a>
+        
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
+
+
+
+
+
+
+
+
+
+
 
 
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="index.html">Docs</a> &raquo;</li>
-      
-    <li>Hooks</li>
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Hooks</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-            <a href="_sources/hooks.txt" rel="nofollow"> View page source</a>
+            
+            <a href="_sources/hooks.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -132,7 +153,7 @@
             
   <div class="section" id="hooks">
 <h1>Hooks<a class="headerlink" href="#hooks" title="Permalink to this headline">¶</a></h1>
-<p>If there&#8217;s a need for added behavior on any command execution, it can be provided via custom scripts, that can be assigned to the hook variables. The script provided will be sourced, which means that its commands will be called in the same process and any changes, ie. directory changes, global variables, will be kept in current shell session after sourcing. There&#8217;re hooks that will be sourced before and after each command.</p>
+<p>If there’s a need for added behavior on any command execution, it can be provided via custom scripts, that can be assigned to the hook variables. The script provided will be sourced, which means that its commands will be called in the same process and any changes, ie. directory changes, global variables, will be kept in current shell session after sourcing. There’re hooks that will be sourced before and after each command.</p>
 <p>Custom hook script will be sourced:</p>
 <blockquote>
 <div><ul class="simple">
@@ -140,93 +161,86 @@
 <li>for <strong>POST</strong> command - after all actions are taken, as last instructions, but only if no errors occured.</li>
 </ul>
 </div></blockquote>
-<p>For convenience every script defined for hook variables will get &#8220;<em>venv=VENV_NAME</em>&#8221; as first argument and all the arguments from command line as subsequent arguments.
+<p>For convenience every script defined for hook variables will get “<em>venv=VENV_NAME</em>” as first argument and all the arguments from command line as subsequent arguments.
 Special cases are:</p>
 <blockquote>
 <div><ul class="simple">
-<li><strong>LSVENV</strong> might be called without <em>VENV_NAME</em>, in this case &#8220;<em>venv=</em>&#8221; will be provided;</li>
-<li><strong>CPVENV</strong> will get &#8220;<em>venv=SRC_VENV</em>&#8221; and &#8220;<em>dst=DST_VENV</em>&#8221; as first and second arguments and all the arguments from command line as subsequent arguments;</li>
-<li><strong>DEACT</strong> will not get any arguments, as it doesn&#8217;t use any. (Active virtual evironment path is kept in <em>VIRTUAL_ENV</em> environment variable, so it can be used.)</li>
+<li><strong>LSVENV</strong> might be called without <em>VENV_NAME</em>, in this case “<em>venv=</em>” will be provided;</li>
+<li><strong>CPVENV</strong> will get “<em>venv=SRC_VENV</em>” and “<em>dst=DST_VENV</em>” as first and second arguments and all the arguments from command line as subsequent arguments;</li>
+<li><strong>DEACT</strong> will not get any arguments, as it doesn’t use any. (Active virtual evironment path is kept in <em>VIRTUAL_ENV</em> environment variable, so it can be used.)</li>
 </ul>
 </div></blockquote>
 <p><em>VENV_NAME</em>, <em>SRC_VENV</em>, <em>DST_VENV</em> will be the actual virtual environments names provided as argument to corresponding command.</p>
-<p>Custom script should return &#8216;<em>0</em>&#8216; in the end if no errors occured. If the sourced script will return any return code other than &#8216;<em>0</em>&#8216;, then the command will be aborted with error.</p>
-<p>Provide a path to a custom script file as a value for the following variables directly in <em>pyvenvwrapper_settings</em> in <em>pyvenvwrapper</em> package or in the end of user&#8217;s <em>.bashrc</em> file to define hooks (i.e. <em>PYVENVWRAPPER_POST_MKVENV=~/custom_sript</em>). Fot changes to take effect you&#8217;ll have to reboot the shell or run &#8216;<em>source ~/.bashrc</em>&#8216;.</p>
+<p>Custom script should return ‘<em>0</em>’ in the end if no errors occured. If the sourced script will return any return code other than ‘<em>0</em>’, then the command will be aborted with error.</p>
+<p>Provide a path to a custom script file as a value for the following variables directly in <em>pyvenvwrapper_settings</em> in <em>pyvenvwrapper</em> package or in the end of user’s <em>.bashrc</em> file to define hooks (i.e. <em>PYVENVWRAPPER_POST_MKVENV=~/custom_sript</em>). Fot changes to take effect you’ll have to reboot the shell or run ‘<em>source ~/.bashrc</em>’.</p>
 <blockquote>
-<div><ul>
+<div><ul class="simple">
 <li><dl class="first docutils">
 <dt>Sourced before and after <em>mkvenv</em>:</dt>
-<dd><p class="first last"><strong>PYVENVWRAPPER_PRE_MKVENV</strong>
-<strong>PYVENVWRAPPER_POST_MKVENV</strong></p>
-</dd>
+<dd><strong>PYVENVWRAPPER_PRE_MKVENV</strong>
+<strong>PYVENVWRAPPER_POST_MKVENV</strong></dd>
 </dl>
 </li>
 <li><dl class="first docutils">
 <dt>Sourced before and after <em>lsvenv</em>:</dt>
-<dd><p class="first last"><strong>PYVENVWRAPPER_PRE_LSVENV</strong>
-<strong>PYVENVWRAPPER_POST_LSVENV</strong></p>
-</dd>
+<dd><strong>PYVENVWRAPPER_PRE_LSVENV</strong>
+<strong>PYVENVWRAPPER_POST_LSVENV</strong></dd>
 </dl>
 </li>
 <li><dl class="first docutils">
 <dt>Sourced before and after <em>cdvenv</em>:</dt>
-<dd><p class="first last"><strong>PYVENVWRAPPER_PRE_CDVENV</strong>
-<strong>PYVENVWRAPPER_POST_CDVENV</strong></p>
-</dd>
+<dd><strong>PYVENVWRAPPER_PRE_CDVENV</strong>
+<strong>PYVENVWRAPPER_POST_CDVENV</strong></dd>
 </dl>
 </li>
 <li><dl class="first docutils">
 <dt>Sourced before and after <em>rmvenv</em>:</dt>
-<dd><p class="first last"><strong>PYVENVWRAPPER_PRE_RMVENV</strong>
-<strong>PYVENVWRAPPER_POST_RMVENV</strong></p>
-</dd>
+<dd><strong>PYVENVWRAPPER_PRE_RMVENV</strong>
+<strong>PYVENVWRAPPER_POST_RMVENV</strong></dd>
 </dl>
 </li>
 <li><dl class="first docutils">
 <dt>Sourced before and after <em>cpvenv</em>:</dt>
-<dd><p class="first last"><strong>PYVENVWRAPPER_PRE_CPVENV</strong>
-<strong>PYVENVWRAPPER_POST_CPVENV</strong></p>
-</dd>
+<dd><strong>PYVENVWRAPPER_PRE_CPVENV</strong>
+<strong>PYVENVWRAPPER_POST_CPVENV</strong></dd>
 </dl>
 </li>
 <li><dl class="first docutils">
 <dt>Sourced before and after <em>workon</em>:</dt>
-<dd><p class="first last"><strong>PYVENVWRAPPER_PRE_WORKON</strong>
-<strong>PYVENVWRAPPER_POST_WORKON</strong></p>
-</dd>
+<dd><strong>PYVENVWRAPPER_PRE_WORKON</strong>
+<strong>PYVENVWRAPPER_POST_WORKON</strong></dd>
 </dl>
 </li>
 <li><dl class="first docutils">
 <dt>Sourced before and after <em>deact</em>:</dt>
-<dd><p class="first last"><strong>PYVENVWRAPPER_PRE_DEACT</strong>
-<strong>PYVENVWRAPPER_POST_DEACT</strong></p>
-</dd>
+<dd><strong>PYVENVWRAPPER_PRE_DEACT</strong>
+<strong>PYVENVWRAPPER_POST_DEACT</strong></dd>
 </dl>
 </li>
 <li><dl class="first docutils">
 <dt>Sourced before and after virtual environment activation on directory change if <em>PYVENVWRAPPER_ACT_ON_CD</em> setting is enabled:</dt>
-<dd><p class="first last"><strong>PYVENVWRAPPER_PRE_ACT_ON_CD</strong>
-<strong>PYVENVWRAPPER_POST_ACT_ON_CD</strong></p>
-</dd>
+<dd><strong>PYVENVWRAPPER_PRE_ACT_ON_CD</strong>
+<strong>PYVENVWRAPPER_POST_ACT_ON_CD</strong></dd>
 </dl>
 </li>
 </ul>
 </div></blockquote>
 <dl class="docutils">
 <dt>Note for <em>PYVENVWRAPPER_PRE_ACT_ON_CD</em> and <em>PYVENVWRAPPER_POST_ACT_ON_CD</em>:</dt>
-<dd>If <em>cd</em> to directory not related in any way to any virtual environment, hooks are not called. If <em>cd</em> to directory related to virtual environment, even if there&#8217;s any already active virtual environment, the <em>PRE</em> hook will be source before currently active environment deactivation. For these hook scripts any output to console will be suppresed.</dd>
+<dd>If <em>cd</em> to directory not related in any way to any virtual environment, hooks are not called. If <em>cd</em> to directory related to virtual environment, even if there’s any already active virtual environment, the <em>PRE</em> hook will be source before currently active environment deactivation. For these hook scripts any output to console will be suppresed.</dd>
 </dl>
 </div>
 
 
            </div>
+           
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
       
-        <a href="command_reference.html" class="btn btn-neutral" title="Command reference" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="command_reference.html" class="btn btn-neutral" title="Command reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -239,7 +253,7 @@ Special cases are:</p>
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -257,10 +271,12 @@ Special cases are:</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.1.0',
+            VERSION:'1.0.0',
+            LANGUAGE:'en',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="_static/jquery.js"></script>
@@ -269,19 +285,13 @@ Special cases are:</p>
 
   
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

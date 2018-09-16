@@ -198,13 +198,38 @@ function _lsvenv() #Internal use. Generates lsvenv auto-completion on TAB
 	COMPREPLY=($(compgen -W "$completions" -- $cur))
 }
 
+function _update_util_cmd() #updates virtual environment creation utility command considering provided Python interpreter preference
+{
+	if [ "$#" -ne 2 ];
+	then
+		echo "_update_util_cmd: Syntax error, _update_util_cmd requires 2 arguments - virtual environment name and Python interpreter executable to use." >&2
+		return 2
+	fi
+	local util="$1" #virtual environment creation utility name
+	local python_bin="$2" #Python interpreter command or full path
+	if [ "$util" == "venv" ];
+	then
+		util_cmd=( $python_bin -m "venv" )
+	else
+		if [ "$util" == "virtualenv" ];
+		then
+			util_cmd=( virtualenv --python $python_bin )
+		else
+			util_cmd=( $util )
+		fi
+	fi
+	return 0
+}
+
 function mkvenv() #mkvenv command, wrapper for pyvenv/virtualenv and pip install
 {
-	local usage_str 
+	local usage_str
 	local help_str
-	local util_help_str #virtual environment creation utility help string
+	local util_help #virtual environment creation utility help string command
 	local venv #name for new virtual environment
-	local util #argument of -u, name of utility to use for virtual environment creation (default: pyvenv)
+	local util #argument of -u, name of utility to use for virtual environment creation
+	local util_cmd #command matching the `util`
+	local python_bin #argument of -b, path to a Python interpreter executable file
 	local opts #argument of -o, options to pass to virtual environment creation utility
 	local inst #argument of -i, packages to install via pip
 	local req #argument of -r, requirements file to install via pip
@@ -218,13 +243,15 @@ function mkvenv() #mkvenv command, wrapper for pyvenv/virtualenv and pip install
 	local pip_cmd #array representing composed command to install packages
 	local arg_set #store arguments passed to this command to pass to hook script
 	arg_set=$@
-	util="pyvenv"
+	util=""
+	util_cmd=()
+	python_bin="python"
 	ens_pip=false
 	no_proj=false
 	act=false
 	cd_env=false
 	cd_proj=false
-	usage_str="Usage: mkvevn [OPTIONS] VENV_NAME" 
+	usage_str="Usage: mkvevn [OPTIONS] VENV_NAME"
 	help_str="Help: mkvenv command creates new virtual environment with the name of VENV_NAME in directory specified by PYVENVWRAPPER_ENV_DIR (set to \"$PYVENVWRAPPER_ENV_DIR\") and new project directory with the same name in directoy specified by PYVENVWRAPPER_PROJ_DIR (set to \"$PYVENVWRAPPER_PROJ_DIR\"), if this variable is set. Additional options, that modify this command's behavior are described below.
 
 Mandatory arguments to long options are mandatory for short options too.
@@ -232,7 +259,8 @@ Combined options are not supported, i.e. instead of '-aj' use '-a -j'.
 
   -o, --options \"<options>\"             Options to provide to underlying tool
                                         for virtual environment creation.
-				        See additional information below. 
+				        See additional information below.
+
   -i, --install \"<requirements>\"        Install packages listed in requirements
                                         using pip after virtual environment is
 					created. <requirements> should be quoted
@@ -240,31 +268,46 @@ Combined options are not supported, i.e. instead of '-aj' use '-a -j'.
 					specifier format. mkvenv will
 					automatically try to install pip if it
 					isn't already available.
+
   -r, --requirements <file>             Install packages listed in requirements
                                         file using pip after virtual environment
-					is created. <file> should be path
+					is created. <file> should be a path
 					pointing to a file containing
 					requirement specifications in \"pip
 					install -r\" requirements file format.
-					mkvenv will automatically try to install 
+					mkvenv will automatically try to install
 					pip if it isn't already available.
+
   -u, --util <util name>                Specify the name of utility to use for
-                                        virtual environment creation. By defaul t
-					mkvenv tries to use \"pyvenv\" first, if
+                                        virtual environment creation. By default
+					mkvenv tries to use \"venv\" first, if
 					it's not available mkvenv tries to use
-					\"virtualenv\".
+					\"pyvenv\" and then \"virtualenv\".
+
+  -b, --python <python executable>      Use provided Python executable for new
+                                        virtual environment. <python executable>
+					should be a path pointing to a Python
+					interpreter executable file. Works only
+					with \"venv\" and \"virtualenv\". By
+					default the system's \"python\" is used.
+
   -p, --pip                             Install pip after virtual environment is
-                                        created. 
+                                        created.
+
   -t, --template <template dir path>    Copy files and directories from template
                                         directory to newly created project
 					directory. Precludes use of -n option.
+
   -n, --no-project                      Don't create project directory.
                                         Precludes use of -t, -j options.
+
   -a, --activate                        Activate virtual environment after it is
                                         created.
+
   -e, --env                             Change current directory to virtual
                                         environment directory after it is
 					created. Precludes use of -j option.
+
   -j, --project                         Change current directory to project
                                         directory after it is created.
 					Precludes use of -n, -e options.
@@ -276,9 +319,24 @@ Combined options are not supported, i.e. instead of '-aj' use '-a -j'.
 		echo "$usage_str"
 		return 2
 	fi
-	if ! which "$util" > /dev/null 2>&1 && which virtualenv > /dev/null 2>&1; 
+	if $python_bin -c "import venv" > /dev/null 2>&1;
 	then
-		util="virtualenv"
+		util="venv"
+		util_cmd=( $python_bin -m "venv" )
+	else
+		if which pyvenv > /dev/null 2>&1;
+		then
+			util="pyvenv"
+			util_cmd=( pyvenv )
+		else
+			if which virtualenv > /dev/null 2>&1;
+			then
+				util="virtualenv"
+				util_cmd=( virtualenv )
+			else
+				util_cmd=()
+			fi
+		fi
 	fi
 	while [ $# -ne 0 ];
 	do
@@ -286,18 +344,18 @@ Combined options are not supported, i.e. instead of '-aj' use '-a -j'.
 			("-h" | "--help")
 				echo "$usage_str"
 				echo "$help_str"
-				if which "$util" > /dev/null 2>&1; 
+				if [ -n "$util" ];
 				then
 					echo "Help text for underlying utility to use for virtual environment creation is displayed below, you can provide options to it as a string in quotes via -o option of mkvenv.
 ================================================================================"
-					util_help_str=( $util "-h" )
-					if ! ${util_help_str[@]};
+					util_help=( ${util_cmd[@]} "-h" );
+					if ! ${util_help[@]} > /dev/null 2>&1;
 					then
-						util_help_str=( $util "--help" )
-						${util_help_str[@]}
+						util_help=( ${util_cmd[@]} "--help" )
 					fi
+					${util_help[@]}
 				else
-					echo "mkvenv: Error, no utility \"$util\" is found to use for virtual environment creation."$'\n'"Make sure \"$util\" is installed and accessible via PATH variable setting, and try again. Or try providing available utility name to mkvenv via argument of -u/--util option." >&2
+					echo "mkvenv: Error, no utility \"$util\" is found to use for virtual environment creation."$'\n'"Make sure \"$util\" is available, and try again. Or try providing available utility name to mkvenv via argument of -u/--util option." >&2
 				fi
 				return 0
 			;;
@@ -366,8 +424,26 @@ Combined options are not supported, i.e. instead of '-aj' use '-a -j'.
 				if [ -n "$2" ] && [[ "$2" != -* ]];
 				then
 					util="$2"
+					_update_util_cmd $util $python_bin
 				else
 					echo "mkvenv: Syntax error, option -u/--util requires the name of utility to use for virtual environment creation as argument (\"$2\" was provided)." >&2
+					return 2
+				fi
+				shift 2
+			;;
+			("-b" | "--python")
+				if [ -n "$2" ] && [[ "$2" != -* ]];
+				then
+					if which "$2" > /dev/null 2>&1;
+					then
+						python_bin="$2"
+						_update_util_cmd $util $python_bin
+					else
+						echo "mkvenv: Error, can't find \"$2\" file. Option -b/--python requires valid Python interpreter executable path as argument to use for virtual environment creation." >&2
+						return 1
+					fi
+				else
+					echo "mkvenv: Syntax error, option -b/--python requires the path to a Python interpreter executable to use for virtual environment creation as argument (\"$2\" was provided)." >&2
 					return 2
 				fi
 				shift 2
@@ -411,9 +487,9 @@ Combined options are not supported, i.e. instead of '-aj' use '-a -j'.
 		return 1
 	fi
 	#check if virtual environment creation tool is available
-	if ! which "$util" > /dev/null 2>&1;
-       	then	
-		echo "mkvenv: Error, can't find \"$util\" utility to use for virtual environment creation."$'\n'"Make sure \"$util\" is installed and accessible via PATH variable setting, and try again. Or try providing available utility name to mkvenv via argument of -u/--util option." >&2
+	if [ "$util" == "venv" ] && ! ${util_cmd[@]} > /dev/null 2>&1 || ! which ${util_cmd[@]} > /dev/null 2>&1 && ! ${util_cmd[@]} --help > /dev/null 2>&1;
+  then
+		echo "mkvenv: Error, can't use \"${util_cmd[@]}\" for virtual environment creation."$'\n'"Make sure \"$util\" is available, and try again. Or try providing available utility name to mkvenv via argument of -u/--util option." >&2
 		return 1
 	fi
 	#verify argument and options compliance
@@ -477,9 +553,9 @@ Combined options are not supported, i.e. instead of '-aj' use '-a -j'.
 		source "$PYVENVWRAPPER_PRE_MKVENV" "venv=$venv" $arg_set || { echo "mkvenv: Internal error occured, PYVENVWRAPPER_PRE_MKVENV script returned error code, can't proceed." >&2; return 1; }
 	fi
 	echo "mkvenv: Starting..."
-	#make virtual env with tool specified by $util 
+	#make virtual env with tool specified by $util
 	echo "mkvenv: Creating virtual environment \"$venv\" in \"$PYVENVWRAPPER_ENV_DIR/$venv\" using \"$util\"..."
-	venv_cmd=( "$util" ${opts[@]} "$PYVENVWRAPPER_ENV_DIR/$venv" )
+	venv_cmd=( ${util_cmd[@]} ${opts[@]} "$PYVENVWRAPPER_ENV_DIR/$venv" )
 	${venv_cmd[@]} || { echo "mkvevn: Internal error occured, can't proceed." >&2; return 1; }
 	echo "mkvenv: Virtual environment \"$venv\" is created. You can activated it using \"workon $venv\" command, and then deactivate using \"deact\" command."
 	#check that pip is available and install packages if required
@@ -669,6 +745,7 @@ function deact() #deact command, wrapper for deactivate
 		then
 			echo "$usage_str"
 			echo "$help_str"
+			return 0
 		else
 			echo "deact: Syntax error, deact doesn't use any arguments except \"-h\" or \"--help\"." >&2
 			echo "$usage_str"
